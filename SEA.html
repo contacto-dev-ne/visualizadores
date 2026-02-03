@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inversión Región del Maule | Dashboard</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- CORRECCIÓN: Removido Babel e Import Maps - Causaban pantalla en blanco -->
+    <!-- Ahora usando React desde CDN tradicional (más compatible) -->
 
     <script>
         tailwind.config = {
@@ -23,7 +27,7 @@
                     colors: {
                         slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' },
                         primary: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' },
-                        brand: { DEFAULT: '#00306b' } // Color de marca
+                        brand: { DEFAULT: '#00306b' }
                     },
                     boxShadow: {
                         'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
@@ -45,57 +49,231 @@
         }
     </script>
 
-    <script type="importmap">
-    {
-        "imports": {
-            "react": "https://esm.sh/react@18.2.0",
-            "react-dom": "https://esm.sh/react-dom@18.2.0",
-            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "recharts": "https://esm.sh/recharts@2.12.0?external=react,react-dom",
-            "lucide-react": "https://esm.sh/lucide-react@0.263.1?external=react,react-dom"
-        }
-    }
-    </script>
-
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .leaflet-container { z-index: 0; width: 100%; height: 100%; background: #f1f5f9; }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .leaflet-container {
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            background: #f1f5f9;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
 
         .custom-tooltip {
-            background: rgba(255, 255, 255, 0.95); border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 0;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 0;
         }
-        .leaflet-tooltip-left:before { border-left-color: rgba(255, 255, 255, 0.95); }
-        .leaflet-tooltip-right:before { border-right-color: rgba(255, 255, 255, 0.95); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        
+        .leaflet-tooltip-left:before {
+            border-left-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .leaflet-tooltip-right:before {
+            border-right-color: rgba(255, 255, 255, 0.95);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
         .shimmer {
             background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
     </style>
 </head>
+
 <body class="text-slate-800 antialiased h-screen overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
-    
+
     <div id="root"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useMemo, useRef } from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
-        import { 
-            LayoutDashboard, Map as MapIcon, Database, Filter, Calendar, ChevronDown, Check, Search, Building2, Wallet, TrendingUp, Menu, X, ChevronRight, ChevronLeft, Wifi, WifiOff, ExternalLink, MoreHorizontal, ArrowUpRight, PieChart, Layers, Clock, ArrowRight, ArrowLeft, Activity
-        } from 'lucide-react';
+    <!-- React y ReactDOM desde CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+
+    <!-- Babel Standalone para transpilar JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        // Verificar que todas las librerías se cargaron correctamente
+        if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+            document.getElementById('root').innerHTML = '<div style="padding: 40px; text-align: center; color: #991b1b; background: #fee2e2; border-radius: 8px; margin: 20px;"><h2>❌ Error de Carga</h2><p>No se pudieron cargar las librerías necesarias. Verifica tu conexión a Internet y recarga la página (F5).</p></div>';
+            throw new Error('Librerías no cargadas');
+        }
+
+        console.log('✅ React cargado:', React.version);
+        console.log('✅ ReactDOM cargado');
+        console.log('✅ Iniciando aplicación (sin Recharts - gráficos nativos)...');
+
+        // Usar las variables globales en lugar de imports
+        const { useState, useEffect, useMemo, useRef } = React;
+        const { createRoot } = ReactDOM;
+
+        // COMPONENTE SIMPLE DE GRÁFICO DE BARRAS (reemplazo de Recharts)
+        const SimpleBarChart = ({ data, onBarClick }) => {
+            if (!data || data.length === 0) return <div className="text-slate-400 text-sm">Sin datos</div>;
+
+            const maxValue = Math.max(...data.map(d => d.value));
+            const colors = ['#4f46e5', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#14b8a6'];
+
+            return (
+                <div className="space-y-3 py-2">
+                    {data.map((item, index) => {
+                        const percentage = (item.value / maxValue) * 100;
+                        const color = colors[item.colorIndex % colors.length] || colors[index % colors.length];
+
+                        return (
+                            <div key={index} className="group">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs font-medium text-slate-600 truncate max-w-[110px]" title={item.name}>
+                                        {item.name}
+                                    </span>
+                                    <span className="text-xs font-mono font-bold text-indigo-600">
+                                        ${new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(item.value)} MM
+                                    </span>
+                                </div>
+                                <div className="relative h-6 bg-slate-100 rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                                    onClick={() => onBarClick && onBarClick(item.name)}>
+                                    <div
+                                        className="absolute inset-y-0 left-0 rounded-lg transition-all duration-500 group-hover:opacity-90"
+                                        style={{
+                                            width: `${percentage}%`,
+                                            backgroundColor: color,
+                                            boxShadow: `0 0 10px ${color}40`
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // Componentes dummy para mantener compatibilidad
+        const BarChart = () => null;
+        const Bar = () => null;
+        const XAxis = () => null;
+        const YAxis = () => null;
+        const CartesianGrid = () => null;
+        const RechartsTooltip = () => null;
+        const ResponsiveContainer = ({ children }) => children;
+        const Cell = () => null;
+
+        // Crear componentes de iconos usando SVG directo
+        // Lucide UMD no exporta componentes React, así que usamos SVG inline
+        const Icon = ({ name, size = 16, className = '', ...props }) => {
+            const iconData = {
+                'LayoutDashboard': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>',
+                'Map': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>',
+                'Database': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>',
+                'Filter': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
+                'Calendar': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>',
+                'ChevronDown': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+                'Check': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+                'Search': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+                'Building2': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>',
+                'Wallet': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>',
+                'TrendingUp': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+                'Menu': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>',
+                'X': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+                'ChevronRight': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+                'ChevronLeft': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+                'Wifi': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/></svg>',
+                'WifiOff': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 20 20"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="M12 20h.01"/></svg>',
+                'ExternalLink': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>',
+                'MoreHorizontal': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>',
+                'ArrowUpRight': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>',
+                'PieChart': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>',
+                'Layers': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>',
+                'Clock': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+                'ArrowRight': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
+                'ArrowLeft': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>',
+                'Activity': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>'
+            };
+
+            const svg = iconData[name] || iconData['X'];
+            return <span className={className} style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} dangerouslySetInnerHTML={{ __html: svg.replace('width="24"', `width="${size}"`).replace('height="24"', `height="${size}"`) }} {...props} />;
+        };
+
+        // Crear componentes de iconos específicos
+        const LayoutDashboard = (props) => <Icon name="LayoutDashboard" {...props} />;
+        const MapIcon = (props) => <Icon name="Map" {...props} />;
+        const Database = (props) => <Icon name="Database" {...props} />;
+        const Filter = (props) => <Icon name="Filter" {...props} />;
+        const Calendar = (props) => <Icon name="Calendar" {...props} />;
+        const ChevronDown = (props) => <Icon name="ChevronDown" {...props} />;
+        const Check = (props) => <Icon name="Check" {...props} />;
+        const Search = (props) => <Icon name="Search" {...props} />;
+        const Building2 = (props) => <Icon name="Building2" {...props} />;
+        const Wallet = (props) => <Icon name="Wallet" {...props} />;
+        const TrendingUp = (props) => <Icon name="TrendingUp" {...props} />;
+        const Menu = (props) => <Icon name="Menu" {...props} />;
+        const X = (props) => <Icon name="X" {...props} />;
+        const ChevronRight = (props) => <Icon name="ChevronRight" {...props} />;
+        const ChevronLeft = (props) => <Icon name="ChevronLeft" {...props} />;
+        const Wifi = (props) => <Icon name="Wifi" {...props} />;
+        const WifiOff = (props) => <Icon name="WifiOff" {...props} />;
+        const ExternalLink = (props) => <Icon name="ExternalLink" {...props} />;
+        const MoreHorizontal = (props) => <Icon name="MoreHorizontal" {...props} />;
+        const ArrowUpRight = (props) => <Icon name="ArrowUpRight" {...props} />;
+        const PieChart = (props) => <Icon name="PieChart" {...props} />;
+        const Layers = (props) => <Icon name="Layers" {...props} />;
+        const Clock = (props) => <Icon name="Clock" {...props} />;
+        const ArrowRight = (props) => <Icon name="ArrowRight" {...props} />;
+        const ArrowLeft = (props) => <Icon name="ArrowLeft" {...props} />;
+        const Activity = (props) => <Icon name="Activity" {...props} />;
 
         // ==========================================
         // A. ZONA DE CONFIGURACIÓN
@@ -104,15 +282,15 @@
         const COLORS = ['#4f46e5', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#14b8a6'];
         const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const SHORT_MONTHS = { 'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11, 'jan': 0, 'apr': 3, 'aug': 7, 'dec': 11 };
-        const MAULE_COORDS = { 
-            'talca': { lat: -35.4264, lng: -71.6554 }, 'curico': { lat: -34.9854, lng: -71.2394 }, 'linares': { lat: -35.8454, lng: -71.5979 }, 'cauquenes': { lat: -35.9671, lng: -72.3154 }, 
-            'constitucion': { lat: -35.3332, lng: -72.4116 }, 'san javier': { lat: -35.5946, lng: -71.7305 }, 'molina': { lat: -35.1116, lng: -71.2827 }, 'parral': { lat: -36.1469, lng: -71.8263 }, 
-            'san clemente': { lat: -35.5392, lng: -71.4844 }, 'teno': { lat: -34.8646, lng: -71.1762 }, 'longavi': { lat: -36.2212, lng: -71.7223 }, 'villa alegre': { lat: -35.6750, lng: -71.7424 }, 
-            'rauco': { lat: -34.9245, lng: -71.3151 }, 'romeral': { lat: -34.9584, lng: -71.1335 }, 'sagrada familia': { lat: -35.0026, lng: -71.3831 }, 'hualane': { lat: -34.9766, lng: -71.8038 }, 
-            'licanten': { lat: -34.9814, lng: -72.0131 }, 'vichuquen': { lat: -34.8833, lng: -72.0000 }, 'empedrado': { lat: -35.5927, lng: -72.2763 }, 'curepto': { lat: -35.0909, lng: -72.0190 }, 
-            'pelarco': { lat: -35.3855, lng: -71.4438 }, 'rio claro': { lat: -35.2715, lng: -71.2662 }, 'pencahue': { lat: -35.4017, lng: -71.8284 }, 'maule': { lat: -35.4817, lng: -71.6778 }, 
-            'colbun': { lat: -35.7002, lng: -71.4136 }, 'yerbas buenas': { lat: -35.7467, lng: -71.5826 }, 'retiro': { lat: -36.0473, lng: -71.7596 }, 'chanco': { lat: -35.7316, lng: -72.5296 }, 
-            'pelluhue': { lat: -35.8121, lng: -72.5677 } 
+        const MAULE_COORDS = {
+            'talca': { lat: -35.4264, lng: -71.6554 }, 'curico': { lat: -34.9854, lng: -71.2394 }, 'linares': { lat: -35.8454, lng: -71.5979 }, 'cauquenes': { lat: -35.9671, lng: -72.3154 },
+            'constitucion': { lat: -35.3332, lng: -72.4116 }, 'san javier': { lat: -35.5946, lng: -71.7305 }, 'molina': { lat: -35.1116, lng: -71.2827 }, 'parral': { lat: -36.1469, lng: -71.8263 },
+            'san clemente': { lat: -35.5392, lng: -71.4844 }, 'teno': { lat: -34.8646, lng: -71.1762 }, 'longavi': { lat: -36.2212, lng: -71.7223 }, 'villa alegre': { lat: -35.6750, lng: -71.7424 },
+            'rauco': { lat: -34.9245, lng: -71.3151 }, 'romeral': { lat: -34.9584, lng: -71.1335 }, 'sagrada familia': { lat: -35.0026, lng: -71.3831 }, 'hualane': { lat: -34.9766, lng: -71.8038 },
+            'licanten': { lat: -34.9814, lng: -72.0131 }, 'vichuquen': { lat: -34.8833, lng: -72.0000 }, 'empedrado': { lat: -35.5927, lng: -72.2763 }, 'curepto': { lat: -35.0909, lng: -72.0190 },
+            'pelarco': { lat: -35.3855, lng: -71.4438 }, 'rio claro': { lat: -35.2715, lng: -71.2662 }, 'pencahue': { lat: -35.4017, lng: -71.8284 }, 'maule': { lat: -35.4817, lng: -71.6778 },
+            'colbun': { lat: -35.7002, lng: -71.4136 }, 'yerbas buenas': { lat: -35.7467, lng: -71.5826 }, 'retiro': { lat: -36.0473, lng: -71.7596 }, 'chanco': { lat: -35.7316, lng: -72.5296 },
+            'pelluhue': { lat: -35.8121, lng: -72.5677 }
         };
 
         // ==========================================
@@ -120,11 +298,11 @@
         // ==========================================
         // IMPORTANTE: Permitir 2 decimales para precisión
         const formatMoney = (v) => `$${new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v)} MM`;
-        
+
         const countDays = (startDate, endDate) => {
             if (!startDate || !endDate || startDate > endDate) return 0;
             const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         };
 
         // ==========================================
@@ -149,7 +327,7 @@
                     <div className="h-5 w-48 bg-slate-200 rounded shimmer"></div>
                 </div>
                 <div className="p-6 space-y-4">
-                    {[1,2,3,4,5].map(i => (
+                    {[1, 2, 3, 4, 5].map(i => (
                         <div key={i} className="flex gap-4">
                             <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div>
                             <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div>
@@ -243,14 +421,14 @@
 
             return (
                 <div className="relative group" ref={containerRef}>
-                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
-                     <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
+                    <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}>
                         <div className="flex items-center gap-2.5 truncate"><Calendar size={16} className={`${isOpen ? 'text-indigo-400' : 'text-slate-400'} flex-shrink-0 transition-colors`} /><span className="truncate font-medium">{getSummary()}</span></div>
                         <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} />
                     </button>
                     {isOpen && (
                         <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-900/10 max-h-80 overflow-y-auto custom-scrollbar p-2 animate-fade-in">
-                             <div className="mb-2 px-2 py-2 bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2 hover:bg-slate-100 transition-colors" onClick={handleSelectAll}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAll ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>{isAll && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-slate-700">Seleccionar Todo</span></div>
+                            <div className="mb-2 px-2 py-2 bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2 hover:bg-slate-100 transition-colors" onClick={handleSelectAll}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAll ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>{isAll && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-slate-700">Seleccionar Todo</span></div>
                             {treeData.map(({ year, months }) => {
                                 const expanded = expandedYears.includes(year); const full = isYearFull(year, months); const partial = isYearPartial(year, months);
                                 return (
@@ -271,7 +449,7 @@
         };
 
         const MapComponent = ({ data, sectors, selectedSectors, onSectorClick, onProjectClick, currentSearch }) => {
-            const mapRef = useRef(null); const mapInst = useRef(null); const [isZoomActive, setIsZoomActive] = useState(false); 
+            const mapRef = useRef(null); const mapInst = useRef(null); const [isZoomActive, setIsZoomActive] = useState(false);
             const stats = useMemo(() => { const totalInv = data.reduce((acc, curr) => acc + curr.inversion, 0); const sectorStats = data.reduce((acc, curr) => { acc[curr.sector] = (acc[curr.sector] || 0) + curr.inversion; return acc; }, {}); return Object.entries(sectorStats).map(([name, value]) => ({ name, value, colorIndex: sectors.indexOf(name) })).sort((a, b) => b.value - a.value); }, [data, sectors]);
             useEffect(() => {
                 if (!mapRef.current || !window.L) return;
@@ -291,12 +469,12 @@
                     marker.bindTooltip(` <div class="font-sans p-3 min-w-[200px]"> <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${p.sector}</div> <div class="font-bold text-slate-800 text-base leading-tight mb-2">${p.nombre}</div> <div class="border-t border-slate-100 pt-2 mt-1 space-y-1.5"> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Inversión</span> <span class="text-sm font-mono text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">$${new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(p.inversion)} MM</span> </div> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Estado</span> <span class="text-xs font-semibold px-2 py-0.5 rounded border ${p.estado === 'Aprobado' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200'}">${p.estado}</span> </div> </div> <div class="text-[10px] text-indigo-500 mt-2 text-right italic">Click para filtrar</div> </div> `, { className: 'custom-tooltip shadow-xl', direction: 'top', offset: [0, -10] });
                     marker.on('mouseover', function (e) { this.setStyle({ fillOpacity: 1, weight: isSelected ? 4 : 3 }); }); marker.on('mouseout', function (e) { this.setStyle({ fillOpacity: isSelected ? 1 : 0.85, weight: isSelected ? 4 : 2 }); });
                 });
-            }, [data, sectors, currentSearch]); 
+            }, [data, sectors, currentSearch]);
             return (
                 <div className="flex flex-col w-full">
                     <div className={`h-[400px] relative rounded-xl overflow-hidden z-0 border transition-colors duration-300 w-full ${isZoomActive ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-slate-100'}`}>
                         <div ref={mapRef} className="w-full h-full outline-none" />
-                        <div className={`absolute top-4 left-4 z-[400] transition-all duration-500 ${isZoomActive ? 'opacity-0 translate-y-[-10px] pointer-events-none' : 'opacity-100 translate-y-0'}`}><div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9l6 6-6 6"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg> Doble click para zoom</div></div>
+                        <div className={`absolute top-4 left-4 z-[400] transition-all duration-500 ${isZoomActive ? 'opacity-0 translate-y-[-10px] pointer-events-none' : 'opacity-100 translate-y-0'}`}><div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9l6 6-6 6" /><path d="M4 4v7a4 4 0 0 0 4 4h12" /></svg> Doble click para zoom</div></div>
                         {currentSearch && (<div className="absolute top-4 right-4 z-[500] bg-white px-3 py-1.5 rounded-lg shadow-md border border-slate-200 text-xs font-medium text-slate-600 flex items-center gap-2 cursor-pointer hover:bg-slate-50" onClick={() => onProjectClick(currentSearch)}><span>Filtrado por proyecto</span><X size={14} className="text-slate-400 hover:text-red-500" /></div>)}
                     </div>
                     <div className="mt-4 px-1 w-full"><div className="flex items-center justify-between mb-3"><h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1"><Layers size={12} /> Sectores Interactivos ({stats.length})</h4>{selectedSectors.length > 0 && (<span className="text-[10px] text-indigo-500 cursor-pointer hover:underline" onClick={() => onSectorClick('CLEAR_ALL')}>Limpiar filtros</span>)}</div><div className="flex flex-wrap gap-2 w-full">{stats.length > 0 ? stats.map((stat) => { const isActive = selectedSectors.includes(stat.name); return (<div key={stat.name} onClick={() => onSectorClick(stat.name)} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer border ${isActive ? 'bg-indigo-50 border-indigo-200 shadow-sm ring-1 ring-indigo-100' : 'bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200'}`}><span className={`w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 border border-white ring-1 ${isActive ? 'ring-indigo-300' : 'ring-black/5'}`} style={{ backgroundColor: COLORS[stat.colorIndex % COLORS.length] }} /><span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-600'}`}>{stat.name}</span>{isActive && <Check size={10} className="text-indigo-500 ml-1" />}</div>); }) : <div className="text-xs text-slate-400 w-full italic">Sin datos visibles</div>}</div></div>
@@ -320,21 +498,21 @@
                             <img src="https://cchc.cl/documents/431409/0/logoCChC.png/002fea99-2039-beec-02a7-a92335532d6f?t=1695346405910" alt="CChC Maule" className="h-16 w-auto object-contain" />
                         </div>
 
-                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 text-white animate-fade-in" style={{animationDelay: '100ms'}}>
+                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 text-white animate-fade-in" style={{ animationDelay: '100ms' }}>
                             Monitor de Inversión
                         </h1>
-                        
-                        <p className="text-lg md:text-xl text-white font-light tracking-wide mb-10 animate-fade-in" style={{animationDelay: '200ms'}}>
-                            Análisis geoespacial y estratégico de proyectos ingresados al SEA <br className="hidden md:block"/> en la Región del Maule.
+
+                        <p className="text-lg md:text-xl text-white font-light tracking-wide mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                            Análisis geoespacial y estratégico de proyectos ingresados al SEA <br className="hidden md:block" /> en la Región del Maule.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{animationDelay: '300ms'}}>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: '300ms' }}>
                             <button onClick={onEnter} className="group relative px-8 py-4 bg-white text-indigo-950 font-bold rounded-xl shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.02] transition-all duration-300 flex items-center gap-3 overflow-hidden">
                                 <span className="relative z-10">PROYECTOS EN SEA</span>
                                 <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </button>
-                            
+
                             <a href="https://cchc.cl" target="_blank" rel="noopener noreferrer" className="px-6 py-4 text-indigo-300 hover:text-white text-sm font-medium transition-colors flex items-center gap-2">
                                 <ExternalLink size={16} />
                                 <span>Sitio Web CChC</span>
@@ -355,19 +533,19 @@
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
-            const [isLive, setIsLive] = useState(false); 
+            const [isLive, setIsLive] = useState(false);
             const [sidebarOpen, setSidebarOpen] = useState(false);
-            
+
             // -- Estados de Filtros --
             const [selectedSectors, setSelectedSectors] = useState([]);
             const [selectedEstados, setSelectedEstados] = useState([]);
             const [selectedTipos, setSelectedTipos] = useState([]);
             const [selectedPeriods, setSelectedPeriods] = useState({});
-            const [selectedPeriodsCal, setSelectedPeriodsCal] = useState({}); 
+            const [selectedPeriodsCal, setSelectedPeriodsCal] = useState({});
             const [searchTerm, setSearchTerm] = useState('');
 
             const [currentPage, setCurrentPage] = useState(1);
-            const itemsPerPage = 8; 
+            const itemsPerPage = 8;
 
             const PROXY_URL_PRIMARY = `https://corsproxy.io/?${encodeURIComponent(SHEET_CSV_URL)}`;
             const PROXY_URL_BACKUP = `https://api.allorigins.win/raw?url=${encodeURIComponent(SHEET_CSV_URL)}`;
@@ -378,7 +556,7 @@
             const parseData = (csv) => {
                 const lines = csv.split(/\r\n|\n/).map(l => l.trim()).filter(l => l);
                 if (lines.length < 2) return [];
-                
+
                 const parseLine = (text) => { const res = []; let cur = '', inQ = false; for (let char of text) { if (char === '"') { inQ = !inQ; } else if (char === ',' && !inQ) { res.push(cur.trim()); cur = ''; } else cur += char; } res.push(cur.trim()); return res; };
                 const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
 
@@ -392,7 +570,7 @@
                     const p = datePartOnly.split(/[\/\-\.]/);
                     if (p.length >= 3) {
                         const v0 = parseInt(p[0]), v1 = parseInt(p[1]), v2 = parseInt(p[2]);
-                        if (v0 > 1000) return new Date(v0, v1 - 1, v2); 
+                        if (v0 > 1000) return new Date(v0, v1 - 1, v2);
                         else if (v2 > 1000) return new Date(v2, v1 - 1, v0);
                     }
                     const d = new Date(s);
@@ -405,11 +583,11 @@
                     if (!str) return 0;
                     // Eliminar todo excepto números, puntos, comas y signos
                     let clean = str.toString().replace(/[^0-9,.-]/g, '');
-                    
+
                     // Caso 1: Tiene comas. En CL/EU, coma es decimal.
                     if (clean.includes(',')) {
                         clean = clean.replace(/\./g, '').replace(',', '.');
-                    } 
+                    }
                     // Caso 2: No tiene comas, pero tiene MÚLTIPLES puntos. Son miles (1.000.000)
                     else if ((clean.match(/\./g) || []).length > 1) {
                         clean = clean.replace(/\./g, '');
@@ -417,22 +595,22 @@
                     // Caso 3: No tiene comas y tiene UN SOLO punto.
                     // Aquí asumimos formato computacional/US (1000.50) que es común en CSV raw.
                     // NO eliminamos el punto.
-                    
+
                     const num = parseFloat(clean);
                     return isNaN(num) ? 0 : num;
                 };
 
                 return lines.slice(1).map(line => {
                     const row = parseLine(line); const obj = {}; headers.forEach((h, i) => obj[h] = row[i]?.replace(/^"|"$/g, '') || '');
-                    
+
                     const find = (keys) => { for (let k of keys) { if (obj[k]) return obj[k]; const fuzzy = Object.keys(obj).find(ok => ok.toLowerCase().includes(k.toLowerCase())); if (fuzzy) return obj[fuzzy]; } return ''; };
-                    
+
                     const nombre = find(['Nombre', 'Proyecto']) || 'Sin Nombre'; if (nombre === 'Sin Nombre') return null;
-                    const sector = find(['Sector', 'Productivo']) || 'Otros'; const estado = find(['Estado', 'SEIA']) || 'N/A'; const tipo = find(['Tipo', 'Tipología']) || 'N/A'; const titular = find(['Titular', 'Empresa']); 
-                    const fechaStr = find(['Fecha', 'Presentación']); 
-                    const fechaCalStr = find(['Fecha calificación', 'Calificación']); 
-                    const link = find(['Link', 'Enlace', 'URL']); 
-                    
+                    const sector = find(['Sector', 'Productivo']) || 'Otros'; const estado = find(['Estado', 'SEIA']) || 'N/A'; const tipo = find(['Tipo', 'Tipología']) || 'N/A'; const titular = find(['Titular', 'Empresa']);
+                    const fechaStr = find(['Fecha', 'Presentación']);
+                    const fechaCalStr = find(['Fecha calificación', 'Calificación']);
+                    const link = find(['Link', 'Enlace', 'URL']);
+
                     // LÓGICA DE INVERSIÓN
                     const invStr = find(['Inversión', 'MMU$']) || '0';
                     const inv = parseChileanNumber(invStr);
@@ -449,21 +627,21 @@
                     }
 
                     let latStr = find(['Latitud', 'lat']); let lngStr = find(['Longitud', 'lng']); let lat = parseFloat(latStr ? latStr.replace(',', '.') : '0'); let lng = parseFloat(lngStr ? lngStr.replace(',', '.') : '0');
-                    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) { const loc = find(['Localización', 'Comuna']).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); for (let [k, v] of Object.entries(MAULE_COORDS)) { if (loc.includes(k)) { lat = v.lat + (Math.random()-0.5)*0.05; lng = v.lng + (Math.random()-0.5)*0.05; break; } } }
-                    
-                    let approvalMonths = null; 
-                    if (fechaObj && fechaCalObj) { 
-                        const totalDays = countDays(fechaObj, fechaCalObj); 
+                    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) { const loc = find(['Localización', 'Comuna']).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); for (let [k, v] of Object.entries(MAULE_COORDS)) { if (loc.includes(k)) { lat = v.lat + (Math.random() - 0.5) * 0.05; lng = v.lng + (Math.random() - 0.5) * 0.05; break; } } }
+
+                    let approvalMonths = null;
+                    if (fechaObj && fechaCalObj) {
+                        const totalDays = countDays(fechaObj, fechaCalObj);
                         if (totalDays > 0 && fechaCalObj >= fechaObj) {
-                            const adjustedDays = totalDays + 5; 
-                            approvalMonths = (adjustedDays / 30).toFixed(1); 
+                            const adjustedDays = totalDays + 5;
+                            approvalMonths = (adjustedDays / 30).toFixed(1);
                         }
                     }
 
-                    return { 
-                        nombre, sector, estado, tipo, titular, inversion: inv, 
-                        fecha: fechaStr, anio, mes, fechaCal: fechaCalStr, anioCal, mesCal, 
-                        fechaObj, fechaCalObj, lat, lng, link, timestamp, approvalMonths 
+                    return {
+                        nombre, sector, estado, tipo, titular, inversion: inv,
+                        fecha: fechaStr, anio, mes, fechaCal: fechaCalStr, anioCal, mesCal,
+                        fechaObj, fechaCalObj, lat, lng, link, timestamp, approvalMonths
                     };
                 }).filter(Boolean);
             };
@@ -522,14 +700,14 @@
             const handleMapProjectClick = (projectName) => { if (searchTerm === projectName) setSearchTerm(''); else setSearchTerm(projectName); };
             const handleMapSectorClick = (sectorName) => { if (sectorName === 'CLEAR_ALL') { setSelectedSectors([]); return; } setSelectedSectors(prev => prev.includes(sectorName) ? prev.filter(s => s !== sectorName) : [...prev, sectorName]); };
 
-            const kpiTotal = filtered.reduce((a,b) => a + b.inversion, 0);
+            const kpiTotal = filtered.reduce((a, b) => a + b.inversion, 0);
             const avgApprovalMonths = useMemo(() => {
                 const validProjects = filtered.filter(d => d.estado === 'Aprobado' && (d.tipo === 'DIA' || d.tipo === 'Declaración de Impacto Ambiental') && d.fechaObj && d.fechaCalObj);
                 if (validProjects.length === 0) return null;
                 const totalMonths = validProjects.reduce((acc, curr) => { const totalDays = countDays(curr.fechaObj, curr.fechaCalObj); const adjustedDays = totalDays + 5; return acc + (adjustedDays / 30); }, 0);
                 return (totalMonths / validProjects.length).toFixed(1);
-            }, [filtered]); 
-            const chartData = useMemo(() => { const m = {}; filtered.forEach(d => m[d.sector] = (m[d.sector] || 0) + d.inversion); return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value).slice(0,8); }, [filtered]);
+            }, [filtered]);
+            const chartData = useMemo(() => { const m = {}; filtered.forEach(d => m[d.sector] = (m[d.sector] || 0) + d.inversion); return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8); }, [filtered]);
 
             return (
                 <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
@@ -599,20 +777,12 @@
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                         <div className="lg:col-span-1 bg-white p-5 rounded-2xl shadow-soft border border-slate-100 flex flex-col h-[500px] lg:h-[500px] animate-fade-in" style={{ animationDelay: '300ms' }}>
                                             <div className="mb-4 flex items-center justify-between"><h3 className="font-bold text-slate-700 flex items-center gap-2"><span className="w-1.5 h-6 bg-indigo-500 rounded-full"></span>Inversión por Sector</h3><button className="text-slate-400 hover:text-indigo-600 transition-colors"><MoreHorizontal size={20} /></button></div>
-                                            <div className="flex-1 -ml-4">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }} barGap={4}>
-                                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                                                        <XAxis type="number" hide />
-                                                        <YAxis dataKey="name" type="category" width={110} tick={{fontSize: 11, fill: '#64748b', fontWeight: 500}} tickLine={false} axisLine={false} />
-                                                        <RechartsTooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px' }} formatter={(value) => [<span className="font-bold text-indigo-600 text-base">{formatMoney(value)}</span>, '']} labelStyle={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px', fontWeight: '600', textTransform: 'uppercase' }} />
-                                                        <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={20} animationDuration={1500}>{chartData.map((entry, index) => { const globalIndex = sectors.indexOf(entry.name); const color = globalIndex >= 0 ? COLORS[globalIndex % COLORS.length] : COLORS[index % COLORS.length]; return (<Cell key={`cell-${index}`} fill={color} cursor="pointer" onClick={() => handleMapSectorClick(entry.name)} />); })}</Bar>
-                                                    </BarChart>
-                                                </ResponsiveContainer>
+                                            <div className="flex-1">
+                                                <SimpleBarChart data={chartData} onBarClick={handleMapSectorClick} />
                                             </div>
                                         </div>
                                         <div className="lg:col-span-2 bg-white p-4 rounded-2xl shadow-soft border border-slate-100 relative flex flex-col animate-fade-in" style={{ animationDelay: '400ms' }}>
-                                            <div className="absolute top-6 left-6 z-10 bg-white/95 backdrop-blur px-4 py-2.5 rounded-xl shadow-lg border border-slate-100 pointer-events-none"><h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm"><MapIcon size={16} className="text-indigo-500"/> Mapa Geoespacial</h3></div>
+                                            <div className="absolute top-6 left-6 z-10 bg-white/95 backdrop-blur px-4 py-2.5 rounded-xl shadow-lg border border-slate-100 pointer-events-none"><h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm"><MapIcon size={16} className="text-indigo-500" /> Mapa Geoespacial</h3></div>
                                             <MapComponent data={filtered} sectors={sectors} selectedSectors={selectedSectors} currentSearch={searchTerm} onSectorClick={handleMapSectorClick} onProjectClick={handleMapProjectClick} />
                                         </div>
                                     </div>
@@ -634,7 +804,7 @@
                                                         <tr key={idx} className="hover:bg-indigo-50/40 transition-colors group">
                                                             <td className="px-3 py-2.5 font-medium text-slate-700 pl-6 align-middle"><div className="truncate w-full" title={d.nombre}>{d.link ? (<a href={d.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 group/link hover:text-indigo-600 transition-colors"><span className="truncate">{d.nombre}</span><ArrowUpRight size={12} className="opacity-0 group-hover/link:opacity-100 text-indigo-500 flex-shrink-0" /></a>) : (<span>{d.nombre}</span>)}</div><span className="text-[10px] text-slate-400 block mt-0.5">{d.fecha}</span></td>
                                                             <td className="px-3 py-2.5 text-slate-500 align-middle"><div className="truncate w-full text-xs font-medium bg-slate-50 px-2 py-1 rounded border border-slate-100" title={d.titular}>{d.titular}</div></td>
-                                                            <td className="px-3 py-2.5 align-middle"><div className="flex items-center gap-1.5 text-slate-600 font-medium truncate"><span className={`w-1.5 h-1.5 rounded-full flex-shrink-0`} style={{backgroundColor: COLORS[sectors.indexOf(d.sector) % COLORS.length]}}></span><span className="text-xs truncate" title={d.sector}>{d.sector}</span></div></td>
+                                                            <td className="px-3 py-2.5 align-middle"><div className="flex items-center gap-1.5 text-slate-600 font-medium truncate"><span className={`w-1.5 h-1.5 rounded-full flex-shrink-0`} style={{ backgroundColor: COLORS[sectors.indexOf(d.sector) % COLORS.length] }}></span><span className="text-xs truncate" title={d.sector}>{d.sector}</span></div></td>
                                                             <td className="px-3 py-2.5 align-middle"><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap ${d.estado === 'Aprobado' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>{d.estado === 'Aprobado' ? <Check size={10} className="mr-1 stroke-[3]" /> : <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></div>}{d.estado}</span></td>
                                                             <td className="px-3 py-2.5 text-center align-middle">{d.approvalMonths ? (<span className="text-slate-600 font-mono text-xs font-medium bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{d.approvalMonths}</span>) : <span>&nbsp;</span>}</td>
                                                             <td className="px-3 py-2.5 text-right pr-6 align-middle"><span className="font-mono text-slate-700 font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-100 shadow-sm whitespace-nowrap text-xs">{new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(d.inversion)}</span></td>
@@ -677,4 +847,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>
