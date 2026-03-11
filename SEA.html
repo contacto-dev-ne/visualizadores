@@ -13,6 +13,7 @@
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     
+    <!-- Babel para transpilar JSX en el navegador -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script>
@@ -45,6 +46,7 @@
         }
     </script>
 
+    <!-- IMPORT MAP: Configurado para usar Recharts sin errores -->
     <script type="importmap">
     {
         "imports": {
@@ -102,9 +104,11 @@
     
     <div id="root"></div>
 
+    <!-- Manejador de errores global para la carga de scripts -->
     <script>
         window.addEventListener('error', function(e) {
             const root = document.getElementById('root');
+            // Solo mostrar si el root está vacío (falló el inicio de React)
             if (root && root.innerHTML === '') {
                 console.error("Error global detectado:", e);
                 root.innerHTML = `<div style="display:flex; height:100vh; align-items:center; justify-content:center; text-align:center; padding:20px; color:#ef4444; font-family:sans-serif;">
@@ -123,15 +127,26 @@
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useMemo, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
+        // Recharts ahora funcionará gracias al importmap corregido
         import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
         import { 
             LayoutDashboard, Map as MapIcon, Database, Filter, Calendar, ChevronDown, Check, Search, Building2, Wallet, TrendingUp, Menu, X, ChevronRight, ChevronLeft, Wifi, WifiOff, ExternalLink, MoreHorizontal, ArrowUpRight, PieChart, Layers, Clock, ArrowRight, ArrowLeft, Activity
         } from 'lucide-react';
 
         // ==========================================
-        // CONFIGURACIÓN DE RED Y DATOS (POWER AUTOMATE)
+        // CONFIGURACIÓN DE RED Y DATOS
         // ==========================================
-        const POWER_AUTOMATE_URL = "https://default6780ef6e6e8c4ac2b2bc18eb02f617.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/46b6cb57149e41be940912e00255933e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=kerfdY9-3_R5Rki-x8dc-zzIu4yfvPm-bX0s0NU4ruQ"; 
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRXB1xbDw893bsr9BQ3BhQ-URhstruzljQtf5TJ_E56HisCl68oF0w4oEDbwqaMdJJBaT0oJ7CcegXp/pub?gid=1773178254&single=true&output=csv";
+        
+        // Estrategia de Proxies en cascada para evitar el error 403/CORS
+        const PROXY_OPTIONS = [
+            // Opción 1: CodeTabs (Suele ser muy fiable)
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+            // Opción 2: AllOrigins (Buena alternativa)
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            // Opción 3: CorsProxy (Fallback final)
+            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+        ];
 
         const COLORS = ['#4f46e5', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#14b8a6'];
         const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -379,12 +394,14 @@
         // D. DASHBOARD
         // ==========================================
         const Dashboard = ({ onBack }) => {
+            // -- Estados Globales --
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
             const [isLive, setIsLive] = useState(false); 
             const [sidebarOpen, setSidebarOpen] = useState(false);
             
+            // -- Estados de Filtros --
             const [selectedSectors, setSelectedSectors] = useState([]);
             const [selectedEstados, setSelectedEstados] = useState([]);
             const [selectedTipos, setSelectedTipos] = useState([]);
@@ -396,15 +413,20 @@
             const itemsPerPage = 8; 
 
             // ===================================================================================
-            // PROCESAR JSON DE POWER AUTOMATE
+            // PARSE DATA DEFINITIVO (FECHAS + INVERSIÓN INTELIGENTE)
             // ===================================================================================
-            const processJsonData = (jsonArray) => {
-                if (!Array.isArray(jsonArray)) return [];
+            const parseData = (csv) => {
+                const lines = csv.split(/\r\n|\n/).map(l => l.trim()).filter(l => l);
+                if (lines.length < 2) return [];
+                
+                const parseLine = (text) => { const res = []; let cur = '', inQ = false; for (let char of text) { if (char === '"') { inQ = !inQ; } else if (char === ',' && !inQ) { res.push(cur.trim()); cur = ''; } else cur += char; } res.push(cur.trim()); return res; };
+                const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
 
+                // 1. HELPER FECHAS
                 const parseDateString = (dateStr) => {
                     if (!dateStr) return null;
                     if (/^\d+$/.test(dateStr)) return new Date((parseInt(dateStr) - 25569) * 86400000);
-                    let s = dateStr.toString().trim().replace(/^"|"$/g, '');
+                    let s = dateStr.trim().replace(/^"|"$/g, '');
                     Object.entries(SHORT_MONTHS).forEach(([k, v]) => { if (s.toLowerCase().includes(k)) s = s.toLowerCase().replace(k, (v + 1).toString()); });
                     const datePartOnly = s.split(/[ T]/)[0];
                     const p = datePartOnly.split(/[\/\-\.]/);
@@ -417,6 +439,7 @@
                     return isNaN(d.getTime()) ? null : d;
                 };
 
+                // 2. HELPER NÚMEROS (ROBUSTO)
                 const parseChileanNumber = (str) => {
                     if (!str) return 0;
                     let clean = str.toString().replace(/[^0-9,.-]/g, '');
@@ -429,23 +452,21 @@
                     return isNaN(num) ? 0 : num;
                 };
 
-                return jsonArray.map(item => {
-                    const nombre = item.Nombre || item.Proyecto || 'Sin Nombre'; 
-                    if (nombre === 'Sin Nombre') return null;
+                return lines.slice(1).map(line => {
+                    const row = parseLine(line); const obj = {}; headers.forEach((h, i) => obj[h] = row[i]?.replace(/^"|"$/g, '') || '');
                     
-                    const sector = item.Sector || item.Productivo || 'Otros'; 
-                    const estado = item.Estado || item.SEIA || 'N/A'; 
-                    const tipo = item.Tipo || item.Tipologia || 'N/A'; 
-                    const titular = item.Titular || item.Empresa || ''; 
-                    const fechaStr = item.Fecha || item.Presentacion || ''; 
-                    const fechaCalStr = item.FechaCalificacion || item.Calificacion || ''; 
-                    const link = item.Link || item.Enlace || item.URL || ''; 
+                    const find = (keys) => { for (let k of keys) { if (obj[k]) return obj[k]; const fuzzy = Object.keys(obj).find(ok => ok.toLowerCase().includes(k.toLowerCase())); if (fuzzy) return obj[fuzzy]; } return ''; };
                     
-                    const invStr = item.Inversion || item.MMUS || '0';
+                    const nombre = find(['Nombre', 'Proyecto']) || 'Sin Nombre'; if (nombre === 'Sin Nombre') return null;
+                    const sector = find(['Sector', 'Productivo']) || 'Otros'; const estado = find(['Estado', 'SEIA']) || 'N/A'; const tipo = find(['Tipo', 'Tipología']) || 'N/A'; const titular = find(['Titular', 'Empresa']); 
+                    const fechaStr = find(['Fecha', 'Presentación']); 
+                    const fechaCalStr = find(['Fecha calificación', 'Calificación']); 
+                    const link = find(['Link', 'Enlace', 'URL']); 
+                    
+                    const invStr = find(['Inversión', 'MMU$']) || '0';
                     const inv = parseChileanNumber(invStr);
 
-                    let anio = 'N/A', mes = 'N/A', timestamp = 0; 
-                    let fechaObj = parseDateString(fechaStr);
+                    let anio = 'N/A', mes = 'N/A', timestamp = 0; let fechaObj = parseDateString(fechaStr);
                     if (fechaObj && !isNaN(fechaObj.getTime()) && fechaObj.getFullYear() > 1900) {
                         anio = fechaObj.getFullYear().toString(); mes = MONTH_NAMES[fechaObj.getMonth()]; timestamp = fechaObj.getTime();
                     }
@@ -455,17 +476,8 @@
                         anioCal = fechaCalObj.getFullYear().toString(); mesCal = MONTH_NAMES[fechaCalObj.getMonth()];
                     }
 
-                    let latStr = item.Latitud || item.lat; 
-                    let lngStr = item.Longitud || item.lng; 
-                    let lat = parseFloat(latStr ? latStr.toString().replace(',', '.') : '0'); 
-                    let lng = parseFloat(lngStr ? lngStr.toString().replace(',', '.') : '0');
-                    
-                    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) { 
-                        const loc = (item.Localizacion || item.Comuna || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
-                        for (let [k, v] of Object.entries(MAULE_COORDS)) { 
-                            if (loc.includes(k)) { lat = v.lat + (Math.random()-0.5)*0.05; lng = v.lng + (Math.random()-0.5)*0.05; break; } 
-                        } 
-                    }
+                    let latStr = find(['Latitud', 'lat']); let lngStr = find(['Longitud', 'lng']); let lat = parseFloat(latStr ? latStr.replace(',', '.') : '0'); let lng = parseFloat(lngStr ? lngStr.replace(',', '.') : '0');
+                    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) { const loc = find(['Localización', 'Comuna']).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); for (let [k, v] of Object.entries(MAULE_COORDS)) { if (loc.includes(k)) { lat = v.lat + (Math.random()-0.5)*0.05; lng = v.lng + (Math.random()-0.5)*0.05; break; } } }
                     
                     let approvalMonths = null; 
                     if (fechaObj && fechaCalObj) { 
@@ -485,72 +497,55 @@
             };
 
             // ===================================================================================
-            // FUNCIÓN DE FETCH HACIA POWER AUTOMATE (CON LOG Y BUSCADOR INTELIGENTE DE ARRAY)
+            // FUNCIÓN DE FETCH CON REINTENTOS MÚLTIPLES (FIX PARA CORS)
             // ===================================================================================
             useEffect(() => {
                 const fetchData = async () => {
                     setLoading(true); setError(null);
+                    let fetchedText = null;
 
-                    try {
-                        const response = await fetch(POWER_AUTOMATE_URL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({})
-                        });
-
-                        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-                        const textData = await response.text();
-                        
-                        let jsonData;
+                    // Intentar cada proxy en orden
+                    for (const getProxyUrl of PROXY_OPTIONS) {
                         try {
-                            jsonData = JSON.parse(textData);
-                            // ESTO ES CLAVE: Imprimimos en consola lo que llega para poder revisarlo
-                            console.log("🔍 Datos recibidos de Power Automate:", jsonData);
-                        } catch (parseError) {
-                            console.error("El texto recibido no es JSON:", textData.substring(0, 100) + "...");
-                            throw new Error("Power Automate no está devolviendo un formato JSON válido.");
+                            const proxyUrl = getProxyUrl(SHEET_CSV_URL);
+                            console.log("Intentando conectar con:", proxyUrl);
+                            
+                            const response = await fetch(proxyUrl);
+                            if (response.ok) {
+                                const text = await response.text();
+                                // Verificar que no sea un error HTML disfrazado de éxito
+                                if (text && text.length > 50 && !text.includes('404 Not Found') && !text.includes('AccessDenied')) {
+                                    fetchedText = text;
+                                    break; // Éxito! Salir del bucle
+                                }
+                            }
+                        } catch (e) {
+                            console.warn("Fallo proxy:", e.message);
+                            // Continuar al siguiente proxy
                         }
-                        
-                        // Buscamos el arreglo inteligente (PA suele envolver las listas en 'value')
-                        let jsonArray = [];
-                        if (Array.isArray(jsonData)) {
-                            jsonArray = jsonData;
-                        } else if (jsonData && Array.isArray(jsonData.value)) {
-                            jsonArray = jsonData.value; // Muy común en Power Automate
-                        } else if (jsonData && jsonData.body && Array.isArray(jsonData.body)) {
-                            jsonArray = jsonData.body;
-                        } else if (typeof jsonData === 'object') {
-                            // Si es un objeto extraño, intentamos buscar arreglos dentro de él
-                            const possibleArray = Object.values(jsonData).find(val => Array.isArray(val));
-                            if (possibleArray) jsonArray = possibleArray;
-                        }
-
-                        if (jsonArray.length === 0) {
-                            console.warn("⚠️ No se encontró una lista válida en los datos. Revisa la consola.");
-                            throw new Error('El JSON no contiene proyectos válidos o la estructura es incorrecta.');
-                        }
-
-                        const processed = processJsonData(jsonArray);
-                        
-                        if (processed.length === 0) {
-                             console.warn("⚠️ Los datos llegaron, pero se descartaron todos. Revisa si la columna se llama 'Nombre' o 'Proyecto'.");
-                        }
-
-                        setData(processed); 
-                        setIsLive(true); 
-
-                    } catch (e) {
-                        console.error("Error procesando:", e);
-                        setData([]); 
-                        setIsLive(true); // Lo dejamos true porque sí conectó, el error es de formato/mapeo
-                        setError(e.message); 
-                    } finally {
-                        setLoading(false);
                     }
+
+                    if (fetchedText) {
+                        try {
+                            const parsed = parseData(fetchedText);
+                            if (parsed.length === 0) throw new Error('CSV válido pero sin filas reconocibles');
+                            setData(parsed); 
+                            setIsLive(true); 
+                            setLoading(false);
+                            return;
+                        } catch (parseError) {
+                             console.error("Error parsing data:", parseError);
+                             setError("Error al procesar datos CSV");
+                        }
+                    }
+
+                    // Si llegamos aquí, fallaron todos los intentos
+                    console.error("Fallaron todos los proxies.");
+                    const mockCSV = `Nombre,Titular,Sector,Estado,Inversión,Fecha,Latitud,Longitud\n"Error Conexión (CORS)","Demo","Energía","En Calificación","120","15/03/2023",-35.4264,-71.6554`;
+                    setData(parseData(mockCSV)); 
+                    setIsLive(false); 
+                    setError(`No se pudo conectar con Google Sheets desde GitHub Pages.`); 
+                    setLoading(false);
                 };
                 fetchData();
             }, []);
@@ -638,12 +633,12 @@
                             </div>
                             <div className="flex items-center gap-4 w-full md:w-auto">
                                 <div className="flex-1 md:w-80 flex items-center bg-slate-100/80 rounded-xl px-4 py-2.5 border border-transparent focus-within:border-indigo-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100/50 transition-all duration-300 group"><Search size={18} className="text-slate-400 mr-3 group-focus-within:text-indigo-500 transition-colors" /><input type="text" placeholder="Buscar proyecto..." className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder-slate-400" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
-                                <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200"><div className={`flex flex-col items-end ${isLive ? 'text-emerald-600' : 'text-red-600'}`}><span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">{isLive ? <Wifi size={10} /> : <WifiOff size={10} />}{isLive ? 'Conectado' : error ? 'Error API' : 'Demo'}</span></div></div>
+                                <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200"><div className={`flex flex-col items-end ${isLive ? 'text-emerald-600' : 'text-red-600'}`}><span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">{isLive ? <Wifi size={10} /> : <WifiOff size={10} />}{isLive ? 'Conectado' : error ? 'Error' : 'Demo'}</span></div></div>
                             </div>
                         </header>
 
                         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 custom-scrollbar scroll-smooth">
-                            {error && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in"><WifiOff size={20} /><div><p className="font-bold text-sm">Problema con los datos recibidos</p><p className="text-xs">{error}</p></div></div>)}
+                            {error && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in"><WifiOff size={20} /><div><p className="font-bold text-sm">Error de Conexión</p><p className="text-xs">{error} - Mostrando datos de ejemplo.</p></div></div>)}
                             {loading ? (
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
