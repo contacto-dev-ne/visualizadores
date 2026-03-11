@@ -6,14 +6,10 @@
     <title>Inversión Región del Maule | Dashboard</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    
-    <!-- Babel para transpilar JSX en el navegador -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script>
@@ -26,27 +22,12 @@
                         primary: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' },
                         brand: { DEFAULT: '#00306b' }
                     },
-                    boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'glow': '0 0 15px rgba(99, 102, 241, 0.3)',
-                    },
-                    animation: {
-                        'blob': 'blob 7s infinite',
-                    },
-                    keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        }
-                    }
+                    boxShadow: { 'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)' }
                 }
             }
         }
     </script>
 
-    <!-- IMPORT MAP: Configurado para usar Recharts sin errores -->
     <script type="importmap">
     {
         "imports": {
@@ -62,656 +43,159 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .leaflet-container { z-index: 0; width: 100%; height: 100%; background: #f1f5f9; }
-        
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .custom-tooltip {
-            background: rgba(255, 255, 255, 0.95); border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 0;
-        }
-        .leaflet-tooltip-left:before { border-left-color: rgba(255, 255, 255, 0.95); }
-        .leaflet-tooltip-right:before { border-right-color: rgba(255, 255, 255, 0.95); }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        
-        .shimmer {
-            background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-        /* Loader inicial visible */
-        #root:empty::before {
-            content: 'Iniciando sistema...';
-            display: flex;
-            height: 100vh;
-            width: 100%;
-            justify-content: center;
-            align-items: center;
-            color: #64748b;
-            font-family: sans-serif;
-            font-size: 1.2rem;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+        #root:empty::before { content: 'Conectando con Power Automate Maule...'; display: flex; height: 100vh; width: 100%; justify-content: center; align-items: center; color: #64748b; font-size: 1.2rem; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
-<body class="text-slate-800 antialiased h-screen overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
-    
+<body class="text-slate-800 antialiased h-screen overflow-hidden">
     <div id="root"></div>
 
-    <!-- Manejador de errores global para la carga de scripts -->
-    <script>
-        window.addEventListener('error', function(e) {
-            const root = document.getElementById('root');
-            // Solo mostrar si el root está vacío (falló el inicio de React)
-            if (root && root.innerHTML === '') {
-                console.error("Error global detectado:", e);
-                root.innerHTML = `<div style="display:flex; height:100vh; align-items:center; justify-content:center; text-align:center; padding:20px; color:#ef4444; font-family:sans-serif;">
-                    <div>
-                        <h3 style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;">Error de Inicialización</h3>
-                        <p>No se pudo cargar la aplicación. Detalles en consola.</p>
-                        <p style="font-size:0.8rem; margin-top:10px; color:#64748b;">${e.message}</p>
-                    </div>
-                </div>`;
-            }
-        });
-    </script>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useMemo, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
-        // Recharts ahora funcionará gracias al importmap corregido
         import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
-        import { 
-            LayoutDashboard, Map as MapIcon, Database, Filter, Calendar, ChevronDown, Check, Search, Building2, Wallet, TrendingUp, Menu, X, ChevronRight, ChevronLeft, Wifi, WifiOff, ExternalLink, MoreHorizontal, ArrowUpRight, PieChart, Layers, Clock, ArrowRight, ArrowLeft, Activity
-        } from 'lucide-react';
+        import { Database, Map as MapIcon, Search, Building2, Wallet, TrendingUp, X, Check, ArrowRight } from 'lucide-react';
 
         // ==========================================
-        // CONFIGURACIÓN DE RED Y DATOS
+        // CONFIGURACIÓN DE LA API
         // ==========================================
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRXB1xbDw893bsr9BQ3BhQ-URhstruzljQtf5TJ_E56HisCl68oF0w4oEDbwqaMdJJBaT0oJ7CcegXp/pub?gid=1773178254&single=true&output=csv";
-        
-        // Estrategia de Proxies en cascada para evitar el error 403/CORS
-        const PROXY_OPTIONS = [
-            // Opción 1: CodeTabs (Suele ser muy fiable)
-            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            // Opción 2: AllOrigins (Buena alternativa)
-            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            // Opción 3: CorsProxy (Fallback final)
-            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
-        ];
+        const POWER_AUTOMATE_URL = "https://default6780ef6e6e8c4ac2b2bc18eb02f617.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/46b6cb57149e41be940912e00255933e/triggers/manual/paths/invoke?api-version=1";
 
-        const COLORS = ['#4f46e5', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#14b8a6'];
-        const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const SHORT_MONTHS = { 'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11, 'jan': 0, 'apr': 3, 'aug': 7, 'dec': 11 };
-        const MAULE_COORDS = { 
-            'talca': { lat: -35.4264, lng: -71.6554 }, 'curico': { lat: -34.9854, lng: -71.2394 }, 'linares': { lat: -35.8454, lng: -71.5979 }, 'cauquenes': { lat: -35.9671, lng: -72.3154 }, 
-            'constitucion': { lat: -35.3332, lng: -72.4116 }, 'san javier': { lat: -35.5946, lng: -71.7305 }, 'molina': { lat: -35.1116, lng: -71.2827 }, 'parral': { lat: -36.1469, lng: -71.8263 }, 
-            'san clemente': { lat: -35.5392, lng: -71.4844 }, 'teno': { lat: -34.8646, lng: -71.1762 }, 'longavi': { lat: -36.2212, lng: -71.7223 }, 'villa alegre': { lat: -35.6750, lng: -71.7424 }, 
-            'rauco': { lat: -34.9245, lng: -71.3151 }, 'romeral': { lat: -34.9584, lng: -71.1335 }, 'sagrada familia': { lat: -35.0026, lng: -71.3831 }, 'hualane': { lat: -34.9766, lng: -71.8038 }, 
-            'licanten': { lat: -34.9814, lng: -72.0131 }, 'vichuquen': { lat: -34.8833, lng: -72.0000 }, 'empedrado': { lat: -35.5927, lng: -72.2763 }, 'curepto': { lat: -35.0909, lng: -72.0190 }, 
-            'pelarco': { lat: -35.3855, lng: -71.4438 }, 'rio claro': { lat: -35.2715, lng: -71.2662 }, 'pencahue': { lat: -35.4017, lng: -71.8284 }, 'maule': { lat: -35.4817, lng: -71.6778 }, 
-            'colbun': { lat: -35.7002, lng: -71.4136 }, 'yerbas buenas': { lat: -35.7467, lng: -71.5826 }, 'retiro': { lat: -36.0473, lng: -71.7596 }, 'chanco': { lat: -35.7316, lng: -72.5296 }, 
-            'pelluhue': { lat: -35.8121, lng: -72.5677 } 
-        };
+        const COLS = { NOMBRE: "2", TITULAR: "6", SECTOR: "9", INVERSION: "10", ESTADO: "13", COORDENADAS: "17" };
+        const COLORS = ['#4f46e5', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'];
 
-        const formatMoney = (v) => `$${new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v)} MM`;
-        
-        const countDays = (startDate, endDate) => {
-            if (!startDate || !endDate || startDate > endDate) return 0;
-            const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        };
+        const formatMoney = (v) => `$${new Intl.NumberFormat('es-CL').format(v)} MM`;
 
-        // ==========================================
-        // COMPONENTES UI
-        // ==========================================
-        const SkeletonCard = () => (
-            <div className="bg-white rounded-2xl p-6 shadow-soft border border-slate-100">
-                <div className="flex justify-between items-start">
-                    <div className="w-full">
-                        <div className="h-3 w-24 bg-slate-100 rounded mb-3 shimmer"></div>
-                        <div className="h-8 w-32 bg-slate-100 rounded mb-2 shimmer"></div>
-                        <div className="h-3 w-20 bg-slate-100 rounded shimmer"></div>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 shimmer"></div>
-                </div>
-            </div>
-        );
-
-        const SkeletonTable = () => (
-            <div className="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
-                <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-                    <div className="h-5 w-48 bg-slate-200 rounded shimmer"></div>
-                </div>
-                <div className="p-6 space-y-4">
-                    {[1,2,3,4,5].map(i => (
-                        <div key={i} className="flex gap-4">
-                            <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-
-        const KPICard = ({ title, value, subtext, icon: Icon, colorClass, bgClass, delay = 0 }) => (
-            <div className="bg-white rounded-2xl p-4 shadow-soft border border-slate-100 hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 group relative overflow-hidden animate-fade-in" style={{ animationDelay: `${delay}ms` }}>
-                <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500 ${bgClass.replace('bg-', 'bg-')}`}></div>
-                <div className="flex justify-between items-start relative z-10">
-                    <div>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-2">{title}</p>
-                        <h3 className="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-indigo-700 transition-colors">{value}</h3>
-                        {subtext && (<p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-medium">{subtext}</p>)}
-                    </div>
-                    <div className={`p-3 rounded-2xl ${bgClass} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner`}>
-                        <Icon size={20} className={colorClass} strokeWidth={2.5} />
-                    </div>
-                </div>
-            </div>
-        );
-
-        const MultiSelect = ({ options, selected, onChange, label, icon: Icon }) => {
-            const [isOpen, setIsOpen] = useState(false);
-            const containerRef = useRef(null);
-            useEffect(() => {
-                const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); };
-                document.addEventListener('mousedown', handleClickOutside);
-                return () => document.removeEventListener('mousedown', handleClickOutside);
-            }, []);
-            const isAllSelected = selected.length === options.length && options.length > 0;
-            const toggleOption = (opt) => selected.includes(opt) ? onChange(selected.filter(i => i !== opt)) : onChange([...selected, opt]);
-            const getSummary = () => {
-                if (selected.length === 0 || (isAllSelected && options.length > 0)) return `Todos`;
-                if (selected.length === 1) return selected[0];
-                return `${selected.length} seleccionados`;
-            };
-            return (
-                <div className="relative group" ref={containerRef}>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
-                    <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}>
-                        <div className="flex items-center gap-2.5 overflow-hidden">{Icon && <Icon size={16} className={`${isOpen ? 'text-indigo-400' : 'text-slate-400'} flex-shrink-0 transition-colors`} />}<span className="truncate font-medium">{getSummary()}</span></div>
-                        <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} />
-                    </button>
-                    {isOpen && (
-                        <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-900/10 max-h-64 overflow-y-auto custom-scrollbar animate-fade-in">
-                            <div className="sticky top-0 bg-slate-50/95 backdrop-blur-md border-b border-slate-100 p-2 cursor-pointer hover:bg-slate-100 transition-colors z-10" onClick={() => isAllSelected ? onChange([]) : onChange([...options])}>
-                                <div className="flex items-center gap-3 px-2 py-1"><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-200 ${isAllSelected ? 'bg-indigo-600 border-indigo-600 shadow-sm' : 'bg-white border-slate-300'}`}>{isAllSelected && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-indigo-900">Seleccionar Todo</span></div>
-                            </div>
-                            <div className="p-1.5">{options.map(opt => (<div key={opt} className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors" onClick={() => toggleOption(opt)}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-200 ${selected.includes(opt) ? 'bg-indigo-500 border-indigo-500 shadow-sm' : 'bg-white border-slate-300'}`}>{selected.includes(opt) && <Check size={10} className="text-white" strokeWidth={3} />}</div><span className={`text-sm ${selected.includes(opt) ? 'text-indigo-900 font-medium' : 'text-slate-600'}`}>{opt}</span></div>))}</div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const PeriodSelector = ({ data, selectedPeriods, onChange, label, yearKey = 'anio', monthKey = 'mes' }) => {
-            const [isOpen, setIsOpen] = useState(false);
-            const [expandedYears, setExpandedYears] = useState([]);
-            const containerRef = useRef(null);
-            const treeData = useMemo(() => {
-                const tree = {};
-                if (!data) return [];
-                data.forEach(item => {
-                    const y = item[yearKey]; const m = item[monthKey];
-                    if (!item || y === 'N/A' || m === 'N/A' || !y || !m) return;
-                    if (!tree[y]) tree[y] = new Set();
-                    tree[y].add(m);
-                });
-                return Object.keys(tree).sort((a, b) => b.localeCompare(a)).map(year => ({ year, months: Array.from(tree[year]).sort((a, b) => MONTH_NAMES.indexOf(a) - MONTH_NAMES.indexOf(b)) }));
-            }, [data, yearKey, monthKey]);
-            useEffect(() => {
-                const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); };
-                document.addEventListener('mousedown', handleClickOutside);
-                return () => document.removeEventListener('mousedown', handleClickOutside);
-            }, []);
-            const toggleYear = (e, year) => { e.stopPropagation(); setExpandedYears(prev => prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]); };
-            const isYearFull = (y, ms) => selectedPeriods[y] && ms.every(m => selectedPeriods[y].includes(m));
-            const isYearPartial = (y, ms) => selectedPeriods[y] && selectedPeriods[y].length > 0 && selectedPeriods[y].length < ms.length;
-            const isAll = treeData.length > 0 && treeData.every(t => isYearFull(t.year, t.months));
-            const handleSelectAll = () => { if (isAll) onChange({}); else { const all = {}; treeData.forEach(t => all[t.year] = [...t.months]); onChange(all); } };
-            const handleYearClick = (y, ms) => { const next = { ...selectedPeriods }; if (isYearFull(y, ms)) delete next[y]; else next[y] = [...ms]; onChange(next); };
-            const handleMonthClick = (y, m) => { const next = { ...selectedPeriods }; const current = next[y] || []; if (current.includes(m)) { next[y] = current.filter(cm => cm !== m); if (next[y].length === 0) delete next[y]; } else { next[y] = [...current, m]; } onChange(next); };
-            const getSummary = () => { const years = Object.keys(selectedPeriods); if (years.length === 0 || isAll) return 'Histórico Completo'; if (years.length === 1) return `${years[0]} (${selectedPeriods[years[0]].length} meses)`; return `${years.length} años seleccionados`; };
-
-            return (
-                <div className="relative group" ref={containerRef}>
-                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
-                     <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}>
-                        <div className="flex items-center gap-2.5 truncate"><Calendar size={16} className={`${isOpen ? 'text-indigo-400' : 'text-slate-400'} flex-shrink-0 transition-colors`} /><span className="truncate font-medium">{getSummary()}</span></div>
-                        <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} />
-                    </button>
-                    {isOpen && (
-                        <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-900/10 max-h-80 overflow-y-auto custom-scrollbar p-2 animate-fade-in">
-                             <div className="mb-2 px-2 py-2 bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2 hover:bg-slate-100 transition-colors" onClick={handleSelectAll}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAll ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>{isAll && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-slate-700">Seleccionar Todo</span></div>
-                            {treeData.map(({ year, months }) => {
-                                const expanded = expandedYears.includes(year); const full = isYearFull(year, months); const partial = isYearPartial(year, months);
-                                return (
-                                    <div key={year} className="mb-1">
-                                        <div className="flex items-center px-2 py-1.5 hover:bg-slate-50 rounded-lg transition-colors group/year">
-                                            <div className={`w-4 h-4 mr-3 rounded border flex items-center justify-center cursor-pointer transition-all ${full ? 'bg-indigo-600 border-indigo-600' : partial ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-300 group-hover/year:border-indigo-300'}`} onClick={() => handleYearClick(year, months)}>{full && <Check size={12} className="text-white" strokeWidth={3} />}{partial && <div className="w-2 h-2 bg-indigo-600 rounded-full" />}</div>
-                                            <span className="flex-grow text-sm font-medium text-slate-700 cursor-pointer" onClick={(e) => toggleYear(e, year)}>{year}</span>
-                                            <div onClick={(e) => toggleYear(e, year)} className="p-1 hover:bg-slate-200 rounded cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors">{expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</div>
-                                        </div>
-                                        {expanded && (<div className="ml-6 pl-3 border-l-2 border-indigo-100 mt-1 space-y-1">{months.map(m => { const isSel = selectedPeriods[year]?.includes(m); return (<div key={`${year}-${m}`} className="flex items-center px-2 py-1.5 cursor-pointer hover:bg-indigo-50 rounded-md transition-colors" onClick={() => handleMonthClick(year, m)}><div className={`w-3.5 h-3.5 mr-2 rounded border flex items-center justify-center transition-all ${isSel ? 'bg-indigo-500 border-indigo-500' : 'bg-white border-slate-300'}`}>{isSel && <Check size={10} className="text-white" strokeWidth={3} />}</div><span className="text-xs text-slate-600">{m}</span></div>) })}</div>)}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const MapComponent = ({ data, sectors, selectedSectors, onSectorClick, onProjectClick, currentSearch }) => {
-            const mapRef = useRef(null); const mapInst = useRef(null); const [isZoomActive, setIsZoomActive] = useState(false); 
-            const stats = useMemo(() => { const totalInv = data.reduce((acc, curr) => acc + curr.inversion, 0); const sectorStats = data.reduce((acc, curr) => { acc[curr.sector] = (acc[curr.sector] || 0) + curr.inversion; return acc; }, {}); return Object.entries(sectorStats).map(([name, value]) => ({ name, value, colorIndex: sectors.indexOf(name) })).sort((a, b) => b.value - a.value); }, [data, sectors]);
+        const MapComponent = ({ data, sectors, onProjectClick }) => {
+            const mapRef = useRef(null); const mapInst = useRef(null);
             useEffect(() => {
                 if (!mapRef.current || !window.L) return;
                 if (!mapInst.current) {
-                    mapInst.current = window.L.map(mapRef.current, { zoomControl: false, scrollWheelZoom: false }).setView([-35.4264, -71.6554], 7);
-                    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 20 }).addTo(mapInst.current);
-                    window.L.control.zoom({ position: 'bottomright' }).addTo(mapInst.current);
-                    mapInst.current.on('dblclick', () => { if (mapInst.current) { mapInst.current.scrollWheelZoom.enable(); setIsZoomActive(true); } });
-                    mapInst.current.on('mouseout', () => { if (mapInst.current) { mapInst.current.scrollWheelZoom.disable(); setIsZoomActive(false); } });
+                    mapInst.current = window.L.map(mapRef.current, { zoomControl: false }).setView([-35.4264, -71.6554], 7);
+                    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapInst.current);
                 }
                 mapInst.current.eachLayer(l => { if (l instanceof window.L.CircleMarker) mapInst.current.removeLayer(l); });
                 data.forEach(p => {
                     if (!p.lat || !p.lng) return;
-                    const idx = sectors.indexOf(p.sector) % COLORS.length; const color = COLORS[idx] || '#94a3b8'; const r = Math.max(6, Math.log((p.inversion || 0) + 1) * 3.5); const isSelected = currentSearch === p.nombre;
-                    const marker = window.L.circleMarker([p.lat, p.lng], { radius: isSelected ? r + 4 : r, fillColor: color, color: isSelected ? '#4f46e5' : '#fff', weight: isSelected ? 4 : 2, opacity: 1, fillOpacity: isSelected ? 1 : 0.85 }).addTo(mapInst.current);
-                    marker.on('click', () => { onProjectClick(p.nombre); });
-                    marker.bindTooltip(` <div class="font-sans p-3 min-w-[200px]"> <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${p.sector}</div> <div class="font-bold text-slate-800 text-base leading-tight mb-2">${p.nombre}</div> <div class="border-t border-slate-100 pt-2 mt-1 space-y-1.5"> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Inversión</span> <span class="text-sm font-mono text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">$${new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(p.inversion)} MM</span> </div> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Estado</span> <span class="text-xs font-semibold px-2 py-0.5 rounded border ${p.estado === 'Aprobado' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200'}">${p.estado}</span> </div> </div> <div class="text-[10px] text-indigo-500 mt-2 text-right italic">Click para filtrar</div> </div> `, { className: 'custom-tooltip shadow-xl', direction: 'top', offset: [0, -10] });
-                    marker.on('mouseover', function (e) { this.setStyle({ fillOpacity: 1, weight: isSelected ? 4 : 3 }); }); marker.on('mouseout', function (e) { this.setStyle({ fillOpacity: isSelected ? 1 : 0.85, weight: isSelected ? 4 : 2 }); });
+                    const color = COLORS[sectors.indexOf(p.sector) % COLORS.length] || '#4f46e5';
+                    const marker = window.L.circleMarker([p.lat, p.lng], { radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.8 }).addTo(mapInst.current);
+                    marker.bindTooltip(`<b>${p.nombre}</b><br>${p.sector}<br>${formatMoney(p.inversion)}`);
+                    marker.on('click', () => onProjectClick(p.nombre));
                 });
-            }, [data, sectors, currentSearch]); 
-            return (
-                <div className="flex flex-col w-full">
-                    <div className={`h-[400px] relative rounded-xl overflow-hidden z-0 border transition-colors duration-300 w-full ${isZoomActive ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-slate-100'}`}>
-                        <div ref={mapRef} className="w-full h-full outline-none" />
-                        <div className={`absolute top-4 left-4 z-[400] transition-all duration-500 ${isZoomActive ? 'opacity-0 translate-y-[-10px] pointer-events-none' : 'opacity-100 translate-y-0'}`}><div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9l6 6-6 6"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg> Doble click para zoom</div></div>
-                        {currentSearch && (<div className="absolute top-4 right-4 z-[500] bg-white px-3 py-1.5 rounded-lg shadow-md border border-slate-200 text-xs font-medium text-slate-600 flex items-center gap-2 cursor-pointer hover:bg-slate-50" onClick={() => onProjectClick(currentSearch)}><span>Filtrado por proyecto</span><X size={14} className="text-slate-400 hover:text-red-500" /></div>)}
-                    </div>
-                    <div className="mt-4 px-1 w-full"><div className="flex items-center justify-between mb-3"><h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1"><Layers size={12} /> Sectores Interactivos ({stats.length})</h4>{selectedSectors.length > 0 && (<span className="text-[10px] text-indigo-500 cursor-pointer hover:underline" onClick={() => onSectorClick('CLEAR_ALL')}>Limpiar filtros</span>)}</div><div className="flex flex-wrap gap-2 w-full">{stats.length > 0 ? stats.map((stat) => { const isActive = selectedSectors.includes(stat.name); return (<div key={stat.name} onClick={() => onSectorClick(stat.name)} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer border ${isActive ? 'bg-indigo-50 border-indigo-200 shadow-sm ring-1 ring-indigo-100' : 'bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200'}`}><span className={`w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 border border-white ring-1 ${isActive ? 'ring-indigo-300' : 'ring-black/5'}`} style={{ backgroundColor: COLORS[stat.colorIndex % COLORS.length] }} /><span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-600'}`}>{stat.name}</span>{isActive && <Check size={10} className="text-indigo-500 ml-1" />}</div>); }) : <div className="text-xs text-slate-400 w-full italic">Sin datos visibles</div>}</div></div>
-                </div>
-            );
+            }, [data, sectors]);
+            return <div ref={mapRef} className="w-full h-full rounded-xl border border-slate-100" />;
         };
 
-        // --- COMPONENTE: PORTADA ---
-        const LandingPage = ({ onEnter }) => {
-            return (
-                <div className="h-screen w-full bg-brand relative overflow-hidden flex flex-col items-center justify-center text-white font-sans">
-                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-                        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob"></div>
-                        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-2000"></div>
-                        <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-4000"></div>
-                        <div className="absolute inset-0 bg-slate-900/20"></div>
-                    </div>
-
-                    <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
-                        <div className="mb-8 inline-flex p-6 bg-white rounded-3xl shadow-2xl shadow-indigo-500/20 animate-fade-in">
-                            <img src="https://cchc.cl/documents/431409/0/logoCChC.png/002fea99-2039-beec-02a7-a92335532d6f?t=1695346405910" alt="CChC Maule" className="h-16 w-auto object-contain" />
-                        </div>
-
-                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 text-white animate-fade-in" style={{animationDelay: '100ms'}}>
-                            Monitor de Inversión
-                        </h1>
-                        
-                        <p className="text-lg md:text-xl text-white font-light tracking-wide mb-10 animate-fade-in" style={{animationDelay: '200ms'}}>
-                            Análisis geoespacial y estratégico de proyectos ingresados al SEA <br className="hidden md:block"/> en la Región del Maule.
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{animationDelay: '300ms'}}>
-                            <button onClick={onEnter} className="group relative px-8 py-4 bg-white text-indigo-950 font-bold rounded-xl shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.02] transition-all duration-300 flex items-center gap-3 overflow-hidden">
-                                <span className="relative z-10">PROYECTOS EN SEA</span>
-                                <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </button>
-                            
-                            <a href="https://cchc.cl" target="_blank" rel="noopener noreferrer" className="px-6 py-4 text-indigo-300 hover:text-white text-sm font-medium transition-colors flex items-center gap-2">
-                                <ExternalLink size={16} />
-                                <span>Sitio Web CChC</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div className="absolute bottom-8 left-0 w-full text-center text-[10px] text-white font-mono z-10 uppercase tracking-widest opacity-50">Cámara Chilena de la Construcción • Sede Maule</div>
-                </div>
-            );
-        };
-
-        // ==========================================
-        // D. DASHBOARD
-        // ==========================================
         const Dashboard = ({ onBack }) => {
-            // -- Estados Globales --
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
-            const [error, setError] = useState(null);
-            const [isLive, setIsLive] = useState(false); 
-            const [sidebarOpen, setSidebarOpen] = useState(false);
-            
-            // -- Estados de Filtros --
-            const [selectedSectors, setSelectedSectors] = useState([]);
-            const [selectedEstados, setSelectedEstados] = useState([]);
-            const [selectedTipos, setSelectedTipos] = useState([]);
-            const [selectedPeriods, setSelectedPeriods] = useState({});
-            const [selectedPeriodsCal, setSelectedPeriodsCal] = useState({}); 
             const [searchTerm, setSearchTerm] = useState('');
 
-            const [currentPage, setCurrentPage] = useState(1);
-            const itemsPerPage = 8; 
-
-            // ===================================================================================
-            // PARSE DATA DEFINITIVO (FECHAS + INVERSIÓN INTELIGENTE)
-            // ===================================================================================
-            const parseData = (csv) => {
-                const lines = csv.split(/\r\n|\n/).map(l => l.trim()).filter(l => l);
-                if (lines.length < 2) return [];
-                
-                const parseLine = (text) => { const res = []; let cur = '', inQ = false; for (let char of text) { if (char === '"') { inQ = !inQ; } else if (char === ',' && !inQ) { res.push(cur.trim()); cur = ''; } else cur += char; } res.push(cur.trim()); return res; };
-                const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
-
-                // 1. HELPER FECHAS
-                const parseDateString = (dateStr) => {
-                    if (!dateStr) return null;
-                    if (/^\d+$/.test(dateStr)) return new Date((parseInt(dateStr) - 25569) * 86400000);
-                    let s = dateStr.trim().replace(/^"|"$/g, '');
-                    Object.entries(SHORT_MONTHS).forEach(([k, v]) => { if (s.toLowerCase().includes(k)) s = s.toLowerCase().replace(k, (v + 1).toString()); });
-                    const datePartOnly = s.split(/[ T]/)[0];
-                    const p = datePartOnly.split(/[\/\-\.]/);
-                    if (p.length >= 3) {
-                        const v0 = parseInt(p[0]), v1 = parseInt(p[1]), v2 = parseInt(p[2]);
-                        if (v0 > 1000) return new Date(v0, v1 - 1, v2); 
-                        else if (v2 > 1000) return new Date(v2, v1 - 1, v0);
-                    }
-                    const d = new Date(s);
-                    return isNaN(d.getTime()) ? null : d;
-                };
-
-                // 2. HELPER NÚMEROS (ROBUSTO)
-                const parseChileanNumber = (str) => {
-                    if (!str) return 0;
-                    let clean = str.toString().replace(/[^0-9,.-]/g, '');
-                    if (clean.includes(',')) {
-                        clean = clean.replace(/\./g, '').replace(',', '.');
-                    } else if ((clean.match(/\./g) || []).length > 1) {
-                        clean = clean.replace(/\./g, '');
-                    }
-                    const num = parseFloat(clean);
-                    return isNaN(num) ? 0 : num;
-                };
-
-                return lines.slice(1).map(line => {
-                    const row = parseLine(line); const obj = {}; headers.forEach((h, i) => obj[h] = row[i]?.replace(/^"|"$/g, '') || '');
-                    
-                    const find = (keys) => { for (let k of keys) { if (obj[k]) return obj[k]; const fuzzy = Object.keys(obj).find(ok => ok.toLowerCase().includes(k.toLowerCase())); if (fuzzy) return obj[fuzzy]; } return ''; };
-                    
-                    const nombre = find(['Nombre', 'Proyecto']) || 'Sin Nombre'; if (nombre === 'Sin Nombre') return null;
-                    const sector = find(['Sector', 'Productivo']) || 'Otros'; const estado = find(['Estado', 'SEIA']) || 'N/A'; const tipo = find(['Tipo', 'Tipología']) || 'N/A'; const titular = find(['Titular', 'Empresa']); 
-                    const fechaStr = find(['Fecha', 'Presentación']); 
-                    const fechaCalStr = find(['Fecha calificación', 'Calificación']); 
-                    const link = find(['Link', 'Enlace', 'URL']); 
-                    
-                    const invStr = find(['Inversión', 'MMU$']) || '0';
-                    const inv = parseChileanNumber(invStr);
-
-                    let anio = 'N/A', mes = 'N/A', timestamp = 0; let fechaObj = parseDateString(fechaStr);
-                    if (fechaObj && !isNaN(fechaObj.getTime()) && fechaObj.getFullYear() > 1900) {
-                        anio = fechaObj.getFullYear().toString(); mes = MONTH_NAMES[fechaObj.getMonth()]; timestamp = fechaObj.getTime();
-                    }
-
-                    let anioCal = 'N/A', mesCal = 'N/A'; let fechaCalObj = parseDateString(fechaCalStr);
-                    if (fechaCalObj && !isNaN(fechaCalObj.getTime()) && fechaCalObj.getFullYear() > 1900) {
-                        anioCal = fechaCalObj.getFullYear().toString(); mesCal = MONTH_NAMES[fechaCalObj.getMonth()];
-                    }
-
-                    let latStr = find(['Latitud', 'lat']); let lngStr = find(['Longitud', 'lng']); let lat = parseFloat(latStr ? latStr.replace(',', '.') : '0'); let lng = parseFloat(lngStr ? lngStr.replace(',', '.') : '0');
-                    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) { const loc = find(['Localización', 'Comuna']).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); for (let [k, v] of Object.entries(MAULE_COORDS)) { if (loc.includes(k)) { lat = v.lat + (Math.random()-0.5)*0.05; lng = v.lng + (Math.random()-0.5)*0.05; break; } } }
-                    
-                    let approvalMonths = null; 
-                    if (fechaObj && fechaCalObj) { 
-                        const totalDays = countDays(fechaObj, fechaCalObj); 
-                        if (totalDays > 0 && fechaCalObj >= fechaObj) {
-                            const adjustedDays = totalDays + 5; 
-                            approvalMonths = (adjustedDays / 30).toFixed(1); 
-                        }
-                    }
-
-                    return { 
-                        nombre, sector, estado, tipo, titular, inversion: inv, 
-                        fecha: fechaStr, anio, mes, fechaCal: fechaCalStr, anioCal, mesCal, 
-                        fechaObj, fechaCalObj, lat, lng, link, timestamp, approvalMonths 
-                    };
-                }).filter(Boolean);
-            };
-
-            // ===================================================================================
-            // FUNCIÓN DE FETCH CON REINTENTOS MÚLTIPLES (FIX PARA CORS)
-            // ===================================================================================
             useEffect(() => {
-                const fetchData = async () => {
-                    setLoading(true); setError(null);
-                    let fetchedText = null;
-
-                    // Intentar cada proxy en orden
-                    for (const getProxyUrl of PROXY_OPTIONS) {
-                        try {
-                            const proxyUrl = getProxyUrl(SHEET_CSV_URL);
-                            console.log("Intentando conectar con:", proxyUrl);
-                            
-                            const response = await fetch(proxyUrl);
-                            if (response.ok) {
-                                const text = await response.text();
-                                // Verificar que no sea un error HTML disfrazado de éxito
-                                if (text && text.length > 50 && !text.includes('404 Not Found') && !text.includes('AccessDenied')) {
-                                    fetchedText = text;
-                                    break; // Éxito! Salir del bucle
-                                }
-                            }
-                        } catch (e) {
-                            console.warn("Fallo proxy:", e.message);
-                            // Continuar al siguiente proxy
-                        }
-                    }
-
-                    if (fetchedText) {
-                        try {
-                            const parsed = parseData(fetchedText);
-                            if (parsed.length === 0) throw new Error('CSV válido pero sin filas reconocibles');
-                            setData(parsed); 
-                            setIsLive(true); 
-                            setLoading(false);
-                            return;
-                        } catch (parseError) {
-                             console.error("Error parsing data:", parseError);
-                             setError("Error al procesar datos CSV");
-                        }
-                    }
-
-                    // Si llegamos aquí, fallaron todos los intentos
-                    console.error("Fallaron todos los proxies.");
-                    const mockCSV = `Nombre,Titular,Sector,Estado,Inversión,Fecha,Latitud,Longitud\n"Error Conexión (CORS)","Demo","Energía","En Calificación","120","15/03/2023",-35.4264,-71.6554`;
-                    setData(parseData(mockCSV)); 
-                    setIsLive(false); 
-                    setError(`No se pudo conectar con Google Sheets desde GitHub Pages.`); 
+                const fetchAPI = async () => {
+                    try {
+                        const response = await fetch(POWER_AUTOMATE_URL);
+                        const raw = await response.json();
+                        const parsed = raw.map(d => {
+                            const coords = d[COLS.COORDENADAS] ? d[COLS.COORDENADAS].split(',') : [-35.42, -71.65];
+                            return {
+                                nombre: d[COLS.NOMBRE] || "S/N",
+                                titular: d[COLS.TITULAR] || "S/T",
+                                sector: d[COLS.SECTOR] || "Otros",
+                                estado: d[COLS.ESTADO] || "N/A",
+                                inversion: parseFloat(d[COLS.INVERSION]) || 0,
+                                lat: parseFloat(coords[0]),
+                                lng: parseFloat(coords[1]),
+                                link: d[`link_${COLS.NOMBRE}`] || null
+                            };
+                        }).filter(d => d.nombre !== "S/N");
+                        setData(parsed);
+                    } catch (e) { console.error(e); }
                     setLoading(false);
                 };
-                fetchData();
+                fetchAPI();
             }, []);
 
-            useEffect(() => { setCurrentPage(1); }, [selectedSectors, selectedEstados, selectedTipos, selectedPeriods, selectedPeriodsCal, searchTerm]);
+            const filtered = data.filter(d => d.nombre.toLowerCase().includes(searchTerm.toLowerCase()));
+            const sectors = [...new Set(data.map(d => d.sector))];
+            const kpiTotal = filtered.reduce((acc, curr) => acc + curr.inversion, 0);
 
-            const getFilteredData = (ignoreType) => {
-                return data.filter(d => {
-                    if (ignoreType !== 'sector' && selectedSectors.length > 0 && !selectedSectors.includes(d.sector)) return false;
-                    if (ignoreType !== 'estado' && selectedEstados.length > 0 && !selectedEstados.includes(d.estado)) return false;
-                    if (ignoreType !== 'tipo' && selectedTipos.length > 0 && !selectedTipos.includes(d.tipo)) return false;
-                    if (ignoreType !== 'periodo' && Object.keys(selectedPeriods).length > 0) { const ms = selectedPeriods[d.anio]; if (!ms || !ms.includes(d.mes)) return false; }
-                    if (ignoreType !== 'periodoCal' && Object.keys(selectedPeriodsCal).length > 0) { const ms = selectedPeriodsCal[d.anioCal]; if (!ms || !ms.includes(d.mesCal)) return false; }
-                    if (searchTerm && !d.nombre.toLowerCase().includes(searchTerm.toLowerCase()) && !d.titular.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-                    return true;
-                });
-            };
-
-            const sectors = useMemo(() => { const subset = getFilteredData('sector'); return [...new Set(subset.map(d => d.sector))].sort(); }, [data, selectedEstados, selectedTipos, selectedPeriods, selectedPeriodsCal, searchTerm]);
-            const estados = useMemo(() => { const subset = getFilteredData('estado'); return [...new Set(subset.map(d => d.estado))].sort(); }, [data, selectedSectors, selectedTipos, selectedPeriods, selectedPeriodsCal, searchTerm]);
-            const tipos = useMemo(() => { const subset = getFilteredData('tipo'); return [...new Set(subset.map(d => d.tipo))].sort(); }, [data, selectedSectors, selectedEstados, selectedPeriods, selectedPeriodsCal, searchTerm]);
-            const dataForPeriods = useMemo(() => getFilteredData('periodo'), [data, selectedSectors, selectedEstados, selectedTipos, selectedPeriodsCal, searchTerm]);
-            const dataForPeriodsCal = useMemo(() => getFilteredData('periodoCal'), [data, selectedSectors, selectedEstados, selectedTipos, selectedPeriods, searchTerm]);
-            const filtered = useMemo(() => getFilteredData('none'), [data, selectedSectors, selectedEstados, selectedTipos, selectedPeriods, selectedPeriodsCal, searchTerm]);
-
-            const sortedData = useMemo(() => [...filtered].sort((a, b) => b.timestamp - a.timestamp), [filtered]);
-            const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-            const paginatedData = sortedData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-            const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
-            const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-            const handleMapProjectClick = (projectName) => { if (searchTerm === projectName) setSearchTerm(''); else setSearchTerm(projectName); };
-            const handleMapSectorClick = (sectorName) => { if (sectorName === 'CLEAR_ALL') { setSelectedSectors([]); return; } setSelectedSectors(prev => prev.includes(sectorName) ? prev.filter(s => s !== sectorName) : [...prev, sectorName]); };
-
-            const kpiTotal = filtered.reduce((a,b) => a + b.inversion, 0);
-            const avgApprovalMonths = useMemo(() => {
-                const validProjects = filtered.filter(d => d.estado === 'Aprobado' && (d.tipo === 'DIA' || d.tipo === 'Declaración de Impacto Ambiental') && d.fechaObj && d.fechaCalObj);
-                if (validProjects.length === 0) return null;
-                const totalMonths = validProjects.reduce((acc, curr) => { const totalDays = countDays(curr.fechaObj, curr.fechaCalObj); const adjustedDays = totalDays + 5; return acc + (adjustedDays / 30); }, 0);
-                return (totalMonths / validProjects.length).toFixed(1);
-            }, [filtered]); 
-            const chartData = useMemo(() => { const m = {}; filtered.forEach(d => m[d.sector] = (m[d.sector] || 0) + d.inversion); return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value).slice(0,8); }, [filtered]);
+            if (loading) return <div className="flex h-screen items-center justify-center font-bold text-slate-400">Consultando base de datos Maule...</div>;
 
             return (
-                <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-                    {sidebarOpen && (<div className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm md:hidden transition-opacity animate-fade-in" onClick={() => setSidebarOpen(false)} />)}
-                    <aside className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-brand text-white flex flex-col shadow-2xl transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-                        <div className="p-6 flex items-center justify-between border-b border-slate-800/50 bg-slate-900/30">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-white p-1.5 rounded-xl shadow-lg shadow-indigo-500/30 ring-1 ring-white/10 h-10 w-10 flex items-center justify-center overflow-hidden"><img src="https://cchc.cl/documents/431409/0/logoCChC.png/002fea99-2039-beec-02a7-a92335532d6f?t=1695346405910" alt="CChC Logo" className="w-full h-full object-contain" /></div>
-                                <div><h1 className="font-bold text-lg leading-none tracking-tight">CChC Maule</h1><p className="text-[10px] text-indigo-300 font-medium tracking-widest mt-1 uppercase">Proyectos en SEA</p></div>
-                            </div>
-                            <button onClick={() => setSidebarOpen(false)} className="md:hidden text-slate-400 hover:text-white transition-colors"><X size={24} /></button>
+                <div className="flex h-screen bg-slate-50 overflow-hidden">
+                    <aside className="w-64 bg-brand text-white p-6 hidden md:flex flex-col">
+                        <div className="mb-8 font-bold text-xl">CChC Maule</div>
+                        <button onClick={onBack} className="text-indigo-200 hover:text-white mb-8 flex items-center gap-2">← Salir</button>
+                        <div className="space-y-4">
+                            <div className="text-[10px] uppercase font-black text-slate-500">Estado Conexión</div>
+                            <div className="text-xs text-emerald-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> API En Vivo</div>
                         </div>
-                        <nav className="flex-1 p-5 space-y-6 overflow-y-auto custom-scrollbar">
-                            <div className="space-y-2">
-                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-2">Menú Principal</div>
-                                <button onClick={onBack} className="w-full flex items-center gap-3 px-4 py-3 text-indigo-200 hover:bg-white/5 rounded-xl transition-all group mb-2">
-                                    <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> <span className="font-medium">Volver a Portada</span>
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between px-2 mb-2">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Filtros Activos</span>
-                                    {(selectedSectors.length > 0 || selectedEstados.length > 0 || selectedTipos.length > 0 || Object.keys(selectedPeriods).length > 0 || Object.keys(selectedPeriodsCal).length > 0) && (<button onClick={() => { setSelectedSectors([]); setSelectedEstados([]); setSelectedTipos([]); setSelectedPeriods({}); setSelectedPeriodsCal({}); }} className="text-[10px] text-indigo-400 hover:text-indigo-300 hover:underline">Limpiar</button>)}
-                                </div>
-                                <div className="space-y-4">
-                                    <PeriodSelector label="Periodo ingreso" data={dataForPeriods} selectedPeriods={selectedPeriods} onChange={setSelectedPeriods} yearKey="anio" monthKey="mes" />
-                                    <PeriodSelector label="Periodo calificación" data={dataForPeriodsCal} selectedPeriods={selectedPeriodsCal} onChange={setSelectedPeriodsCal} yearKey="anioCal" monthKey="mesCal" />
-                                    <MultiSelect label="Sector Productivo" options={sectors} selected={selectedSectors} onChange={setSelectedSectors} icon={Building2} />
-                                    <MultiSelect label="Estado SEA" options={estados} selected={selectedEstados} onChange={setSelectedEstados} icon={Check} />
-                                    <MultiSelect label="Tipología" options={tipos} selected={selectedTipos} onChange={setSelectedTipos} icon={Filter} />
-                                </div>
-                            </div>
-                        </nav>
                     </aside>
 
-                    <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50/50">
-                        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 flex flex-col md:flex-row items-center justify-between px-6 py-4 z-20 sticky top-0">
-                            <div className="w-full md:w-auto flex items-center justify-between mb-3 md:mb-0">
-                                <div className="flex items-center gap-3">
-                                    <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2 rounded-xl hover:bg-slate-100 text-slate-600 md:hidden transition-colors"><Menu size={24} /></button>
-                                    <div><h2 className="font-bold text-slate-800 text-xl tracking-tight">Visión Regional</h2><p className="text-xs text-slate-500 hidden sm:block">Región del Maule • Chile</p></div>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 w-full md:w-auto">
-                                <div className="flex-1 md:w-80 flex items-center bg-slate-100/80 rounded-xl px-4 py-2.5 border border-transparent focus-within:border-indigo-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100/50 transition-all duration-300 group"><Search size={18} className="text-slate-400 mr-3 group-focus-within:text-indigo-500 transition-colors" /><input type="text" placeholder="Buscar proyecto..." className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder-slate-400" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
-                                <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200"><div className={`flex flex-col items-end ${isLive ? 'text-emerald-600' : 'text-red-600'}`}><span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">{isLive ? <Wifi size={10} /> : <WifiOff size={10} />}{isLive ? 'Conectado' : error ? 'Error' : 'Demo'}</span></div></div>
+                    <main className="flex-1 flex flex-col overflow-hidden">
+                        <header className="bg-white border-b p-4 flex justify-between items-center px-8">
+                            <h2 className="font-extrabold text-xl text-slate-800 tracking-tight">Monitor Proyectos SEA</h2>
+                            <div className="relative w-72">
+                                <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
+                                <input type="text" placeholder="Buscar proyecto..." className="pl-10 pr-4 py-2 bg-slate-100 rounded-xl w-full text-sm outline-none" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                             </div>
                         </header>
 
-                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 custom-scrollbar scroll-smooth">
-                            {error && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in"><WifiOff size={20} /><div><p className="font-bold text-sm">Error de Conexión</p><p className="text-xs">{error} - Mostrando datos de ejemplo.</p></div></div>)}
-                            {loading ? (
-                                <div className="space-y-6 animate-fade-in">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"><div className="bg-white rounded-2xl shadow-soft border border-slate-100 shimmer"></div><div className="lg:col-span-2 bg-white rounded-2xl shadow-soft border border-slate-100 shimmer"></div></div>
-                                    <SkeletonTable />
+                        <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="bg-white p-6 rounded-2xl shadow-soft border">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Proyectos Activos</p>
+                                    <h3 className="text-3xl font-black text-slate-800">{filtered.length}</h3>
                                 </div>
-                            ) : (
-                                <>
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
-                                        <KPICard title="Proyectos" value={new Intl.NumberFormat('es-CL').format(filtered.length)} subtext={filtered.length === data.length ? "Total histórico" : "Filtrados"} icon={Database} bgClass="bg-blue-50" colorClass="text-blue-600" delay={0} />
-                                        <KPICard title="Inversión Total" value={formatMoney(kpiTotal)} subtext="Millones USD" icon={Wallet} bgClass="bg-emerald-50" colorClass="text-emerald-600" delay={100} />
-                                        <KPICard title="Sector Líder" value={chartData[0]?.name || 'N/A'} subtext="Mayor inversión acumulada" icon={TrendingUp} bgClass="bg-purple-50" colorClass="text-purple-600" delay={200} />
-                                        <KPICard title="Tiempo Aprobación" value={avgApprovalMonths ? `${avgApprovalMonths} Meses` : "No hay aprobados"} subtext={avgApprovalMonths ? "Promedio DIA filtrados" : "En selección actual"} icon={Calendar} bgClass="bg-orange-50" colorClass="text-orange-600" delay={300} />
-                                    </div>
+                                <div className="bg-white p-6 rounded-2xl shadow-soft border">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Inversión Total</p>
+                                    <h3 className="text-3xl font-black text-indigo-600">{formatMoney(kpiTotal)}</h3>
+                                </div>
+                                <div className="bg-white p-6 rounded-2xl shadow-soft border">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Región</p>
+                                    <h3 className="text-3xl font-black text-slate-800">Maule</h3>
+                                </div>
+                            </div>
 
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                        <div className="lg:col-span-1 bg-white p-5 rounded-2xl shadow-soft border border-slate-100 flex flex-col h-[500px] lg:h-[500px] animate-fade-in" style={{ animationDelay: '300ms' }}>
-                                            <div className="mb-4 flex items-center justify-between"><h3 className="font-bold text-slate-700 flex items-center gap-2"><span className="w-1.5 h-6 bg-indigo-500 rounded-full"></span>Inversión por Sector</h3><button className="text-slate-400 hover:text-indigo-600 transition-colors"><MoreHorizontal size={20} /></button></div>
-                                            <div className="flex-1 -ml-4">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }} barGap={4}>
-                                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                                                        <XAxis type="number" hide />
-                                                        <YAxis dataKey="name" type="category" width={110} tick={{fontSize: 11, fill: '#64748b', fontWeight: 500}} tickLine={false} axisLine={false} />
-                                                        <RechartsTooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px' }} formatter={(value) => [<span className="font-bold text-indigo-600 text-base">{formatMoney(value)}</span>, '']} labelStyle={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px', fontWeight: '600', textTransform: 'uppercase' }} />
-                                                        <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={20} animationDuration={1500}>{chartData.map((entry, index) => { const globalIndex = sectors.indexOf(entry.name); const color = globalIndex >= 0 ? COLORS[globalIndex % COLORS.length] : COLORS[index % COLORS.length]; return (<Cell key={`cell-${index}`} fill={color} cursor="pointer" onClick={() => handleMapSectorClick(entry.name)} />); })}</Bar>
-                                                    </BarChart>
-                                                </ResponsiveContainer>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2 h-[450px] bg-white rounded-2xl p-2 shadow-soft border">
+                                    <MapComponent data={filtered} sectors={sectors} onProjectClick={setSearchTerm} />
+                                </div>
+                                <div className="bg-white rounded-2xl p-6 shadow-soft border flex flex-col overflow-hidden">
+                                    <h3 className="font-bold mb-4 text-slate-700">Top 5 Inversiones</h3>
+                                    <div className="space-y-3 overflow-y-auto">
+                                        {[...filtered].sort((a,b) => b.inversion - a.inversion).slice(0, 5).map((p, i) => (
+                                            <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                <div className="text-xs font-bold text-slate-800 truncate">{p.nombre}</div>
+                                                <div className="text-[10px] font-bold text-indigo-500 uppercase">{formatMoney(p.inversion)}</div>
                                             </div>
-                                        </div>
-                                        <div className="lg:col-span-2 bg-white p-4 rounded-2xl shadow-soft border border-slate-100 relative flex flex-col animate-fade-in" style={{ animationDelay: '400ms' }}>
-                                            <div className="absolute top-6 left-6 z-10 bg-white/95 backdrop-blur px-4 py-2.5 rounded-xl shadow-lg border border-slate-100 pointer-events-none"><h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm"><MapIcon size={16} className="text-indigo-500"/> Mapa Geoespacial</h3></div>
-                                            <MapComponent data={filtered} sectors={sectors} selectedSectors={selectedSectors} currentSearch={searchTerm} onSectorClick={handleMapSectorClick} onProjectClick={handleMapProjectClick} />
-                                        </div>
+                                        ))}
                                     </div>
+                                </div>
+                            </div>
 
-                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-100 flex flex-col overflow-hidden animate-fade-in" style={{ animationDelay: '500ms' }}>
-                                        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                                            <div><h3 className="font-bold text-slate-700 text-lg">Detalle de Proyectos</h3><p className="text-slate-400 text-xs mt-1">Listado completo de iniciativas ingresadas al SEA</p></div>
-                                            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg shadow-sm">{filtered.length} Resultados</span>
-                                        </div>
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-sm text-left table-fixed">
-                                                <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-200 text-xs uppercase tracking-wider">
-                                                    <tr>
-                                                        <th className="px-3 py-3 pl-6 w-[25%]">Proyecto</th><th className="px-3 py-3 w-[20%]">Titular</th><th className="px-3 py-3 w-[12%]">Sector</th><th className="px-3 py-3 w-[13%]">Estado</th><th className="px-3 py-3 w-[15%] text-center">T. Aprobación <span className="block text-[9px] text-slate-400 font-normal normal-case mt-0.5">Meses</span></th><th className="px-3 py-3 text-right pr-6 w-[15%]">Inversión <span className="block text-[9px] text-slate-400 font-normal normal-case mt-0.5">Millones USD</span></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-50">
-                                                    {paginatedData.map((d, idx) => (
-                                                        <tr key={idx} className="hover:bg-indigo-50/40 transition-colors group">
-                                                            <td className="px-3 py-2.5 font-medium text-slate-700 pl-6 align-middle"><div className="truncate w-full" title={d.nombre}>{d.link ? (<a href={d.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 group/link hover:text-indigo-600 transition-colors"><span className="truncate">{d.nombre}</span><ArrowUpRight size={12} className="opacity-0 group-hover/link:opacity-100 text-indigo-500 flex-shrink-0" /></a>) : (<span>{d.nombre}</span>)}</div><span className="text-[10px] text-slate-400 block mt-0.5">{d.fecha}</span></td>
-                                                            <td className="px-3 py-2.5 text-slate-500 align-middle"><div className="truncate w-full text-xs font-medium bg-slate-50 px-2 py-1 rounded border border-slate-100" title={d.titular}>{d.titular}</div></td>
-                                                            <td className="px-3 py-2.5 align-middle"><div className="flex items-center gap-1.5 text-slate-600 font-medium truncate"><span className={`w-1.5 h-1.5 rounded-full flex-shrink-0`} style={{backgroundColor: COLORS[sectors.indexOf(d.sector) % COLORS.length]}}></span><span className="text-xs truncate" title={d.sector}>{d.sector}</span></div></td>
-                                                            <td className="px-3 py-2.5 align-middle"><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap ${d.estado === 'Aprobado' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>{d.estado === 'Aprobado' ? <Check size={10} className="mr-1 stroke-[3]" /> : <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></div>}{d.estado}</span></td>
-                                                            <td className="px-3 py-2.5 text-center align-middle">{d.approvalMonths ? (<span className="text-slate-600 font-mono text-xs font-medium bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{d.approvalMonths}</span>) : <span>&nbsp;</span>}</td>
-                                                            <td className="px-3 py-2.5 text-right pr-6 align-middle"><span className="font-mono text-slate-700 font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-100 shadow-sm whitespace-nowrap text-xs">{new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(d.inversion)}</span></td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        {filtered.length > itemsPerPage && (
-                                            <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                                                <button onClick={handlePrevPage} disabled={currentPage === 1} className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-medium transition-all border ${currentPage === 1 ? 'text-slate-300 border-transparent cursor-not-allowed' : 'text-slate-600 bg-white border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md'}`}><ChevronLeft size={16} /> Anterior</button>
-                                                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Página <span className="text-slate-800 text-sm">{currentPage}</span> de {totalPages}</span>
-                                                <button onClick={handleNextPage} disabled={currentPage === totalPages} className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-medium transition-all border ${currentPage === totalPages ? 'text-slate-300 border-transparent cursor-not-allowed' : 'text-slate-600 bg-white border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md'}`}>Siguiente <ChevronRight size={16} /></button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                            <div className="h-8"></div>
+                            <div className="bg-white rounded-2xl shadow-soft border overflow-hidden">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-slate-50 text-slate-400 font-bold text-[10px] uppercase border-b">
+                                        <tr><th className="px-6 py-4">Iniciativa</th><th className="px-6 py-4">Titular</th><th className="px-6 py-4">Sector</th><th className="px-6 py-4 text-right">Monto</th></tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {filtered.slice(0, 10).map((p, i) => (
+                                            <tr key={i} className="hover:bg-slate-50">
+                                                <td className="px-6 py-4 font-bold text-slate-700">{p.link ? <a href={p.link} target="_blank" className="text-indigo-600 underline">{p.nombre}</a> : p.nombre}</td>
+                                                <td className="px-6 py-4 text-slate-500 text-xs">{p.titular}</td>
+                                                <td className="px-6 py-4"><span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md text-[10px] font-bold">{p.sector}</span></td>
+                                                <td className="px-6 py-4 text-right font-mono font-bold">{formatMoney(p.inversion)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </main>
                 </div>
@@ -720,19 +204,18 @@
 
         const App = () => {
             const [view, setView] = useState('landing');
-            return (
-                <>
-                    {view === 'landing' ? (
-                        <LandingPage onEnter={() => setView('dashboard')} />
-                    ) : (
-                        <Dashboard onBack={() => setView('landing')} />
-                    )}
-                </>
+            const Landing = () => (
+                <div className="h-screen bg-brand flex flex-col items-center justify-center text-white p-6">
+                    <div className="bg-white p-6 rounded-3xl mb-8 shadow-2xl"><img src="https://cchc.cl/documents/431409/0/logoCChC.png" className="h-16" /></div>
+                    <h1 className="text-5xl font-black mb-4 text-center">Monitor SEA Maule</h1>
+                    <p className="text-indigo-200 mb-12 text-center text-lg font-light">Conexión en tiempo real con la base de datos de inversión regional</p>
+                    <button onClick={() => setView('dashboard')} className="px-12 py-5 bg-white text-brand font-black rounded-2xl hover:scale-105 transition-all shadow-xl flex items-center gap-4">INGRESAR AL PANEL <ArrowRight /></button>
+                </div>
             );
+            return view === 'landing' ? <Landing /> : <Dashboard onBack={() => setView('landing')} />;
         };
 
-        const root = createRoot(document.getElementById('root'));
-        root.render(<App />);
+        createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
