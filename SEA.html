@@ -485,7 +485,7 @@
             };
 
             // ===================================================================================
-            // FUNCIÓN DE FETCH HACIA POWER AUTOMATE
+            // FUNCIÓN DE FETCH HACIA POWER AUTOMATE (CORREGIDA CON EL BODY)
             // ===================================================================================
             useEffect(() => {
                 const fetchData = async () => {
@@ -495,18 +495,29 @@
                         const response = await fetch(POWER_AUTOMATE_URL, {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json'
-                            }
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({}) // ¡Esta línea soluciona el error 400!
                         });
 
                         if (!response.ok) {
                             throw new Error(`HTTP Error: ${response.status}`);
                         }
 
-                        const jsonData = await response.json();
+                        // Obtenemos la respuesta primero como texto (por si PA no está devolviendo un JSON puro)
+                        const textData = await response.text();
+                        
+                        let jsonData;
+                        try {
+                            jsonData = JSON.parse(textData);
+                        } catch (parseError) {
+                            console.error("Lo que devolvió Power Automate no es un JSON válido:", textData);
+                            throw new Error("El bloque 'Response' en Power Automate no está devolviendo un formato JSON.");
+                        }
                         
                         if (!jsonData || jsonData.length === 0) {
-                            throw new Error('El JSON de Power Automate está vacío');
+                            throw new Error('El JSON devuelto está vacío');
                         }
 
                         const processed = processJsonData(jsonData);
@@ -516,11 +527,11 @@
                     } catch (e) {
                         console.error("Error conectando a Power Automate:", e);
                         const mockData = [{
-                            Nombre: "Error API - Revisar CORS / Firma de URL", Titular: "Modo Prueba", Sector: "Otros", Estado: "N/A", Inversion: "0", Fecha: "01/01/2024", Latitud: -35.4264, Longitud: -71.6554
+                            Nombre: "Fallo de conexión", Titular: "Revisa la consola para más detalles.", Sector: "Otros", Estado: "N/A", Inversion: "0", Fecha: "01/01/2024", Latitud: -35.4264, Longitud: -71.6554
                         }];
                         setData(processJsonData(mockData)); 
                         setIsLive(false); 
-                        setError(`Fallo de conexión: ${e.message}`); 
+                        setError(e.message); 
                     } finally {
                         setLoading(false);
                     }
@@ -616,7 +627,7 @@
                         </header>
 
                         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 custom-scrollbar scroll-smooth">
-                            {error && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in"><WifiOff size={20} /><div><p className="font-bold text-sm">Error conectando con Power Automate</p><p className="text-xs">{error} - Es probable que debas configurar los headers CORS en Power Automate o arreglar la firma de tu URL.</p></div></div>)}
+                            {error && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in"><WifiOff size={20} /><div><p className="font-bold text-sm">Problema con los datos recibidos</p><p className="text-xs">{error}</p></div></div>)}
                             {loading ? (
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
@@ -714,4 +725,3 @@
     </script>
 </body>
 </html>
-
