@@ -485,7 +485,7 @@
             };
 
             // ===================================================================================
-            // FUNCIÓN DE FETCH HACIA POWER AUTOMATE (CORREGIDA CON EL BODY)
+            // FUNCIÓN DE FETCH HACIA POWER AUTOMATE (CON LOG Y BUSCADOR INTELIGENTE DE ARRAY)
             // ===================================================================================
             useEffect(() => {
                 const fetchData = async () => {
@@ -498,39 +498,55 @@
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json'
                             },
-                            body: JSON.stringify({}) // ¡Esta línea soluciona el error 400!
+                            body: JSON.stringify({})
                         });
 
-                        if (!response.ok) {
-                            throw new Error(`HTTP Error: ${response.status}`);
-                        }
+                        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
-                        // Obtenemos la respuesta primero como texto (por si PA no está devolviendo un JSON puro)
                         const textData = await response.text();
                         
                         let jsonData;
                         try {
                             jsonData = JSON.parse(textData);
+                            // ESTO ES CLAVE: Imprimimos en consola lo que llega para poder revisarlo
+                            console.log("🔍 Datos recibidos de Power Automate:", jsonData);
                         } catch (parseError) {
-                            console.error("Lo que devolvió Power Automate no es un JSON válido:", textData);
-                            throw new Error("El bloque 'Response' en Power Automate no está devolviendo un formato JSON.");
+                            console.error("El texto recibido no es JSON:", textData.substring(0, 100) + "...");
+                            throw new Error("Power Automate no está devolviendo un formato JSON válido.");
                         }
                         
-                        if (!jsonData || jsonData.length === 0) {
-                            throw new Error('El JSON devuelto está vacío');
+                        // Buscamos el arreglo inteligente (PA suele envolver las listas en 'value')
+                        let jsonArray = [];
+                        if (Array.isArray(jsonData)) {
+                            jsonArray = jsonData;
+                        } else if (jsonData && Array.isArray(jsonData.value)) {
+                            jsonArray = jsonData.value; // Muy común en Power Automate
+                        } else if (jsonData && jsonData.body && Array.isArray(jsonData.body)) {
+                            jsonArray = jsonData.body;
+                        } else if (typeof jsonData === 'object') {
+                            // Si es un objeto extraño, intentamos buscar arreglos dentro de él
+                            const possibleArray = Object.values(jsonData).find(val => Array.isArray(val));
+                            if (possibleArray) jsonArray = possibleArray;
                         }
 
-                        const processed = processJsonData(jsonData);
+                        if (jsonArray.length === 0) {
+                            console.warn("⚠️ No se encontró una lista válida en los datos. Revisa la consola.");
+                            throw new Error('El JSON no contiene proyectos válidos o la estructura es incorrecta.');
+                        }
+
+                        const processed = processJsonData(jsonArray);
+                        
+                        if (processed.length === 0) {
+                             console.warn("⚠️ Los datos llegaron, pero se descartaron todos. Revisa si la columna se llama 'Nombre' o 'Proyecto'.");
+                        }
+
                         setData(processed); 
                         setIsLive(true); 
 
                     } catch (e) {
-                        console.error("Error conectando a Power Automate:", e);
-                        const mockData = [{
-                            Nombre: "Fallo de conexión", Titular: "Revisa la consola para más detalles.", Sector: "Otros", Estado: "N/A", Inversion: "0", Fecha: "01/01/2024", Latitud: -35.4264, Longitud: -71.6554
-                        }];
-                        setData(processJsonData(mockData)); 
-                        setIsLive(false); 
+                        console.error("Error procesando:", e);
+                        setData([]); 
+                        setIsLive(true); // Lo dejamos true porque sí conectó, el error es de formato/mapeo
                         setError(e.message); 
                     } finally {
                         setLoading(false);
