@@ -13,7 +13,6 @@
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     
-    <!-- Babel para transpilar JSX en el navegador -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script>
@@ -46,7 +45,6 @@
         }
     </script>
 
-    <!-- IMPORT MAP: Configurado para usar Recharts sin errores -->
     <script type="importmap">
     {
         "imports": {
@@ -62,53 +60,27 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .leaflet-container { z-index: 0; width: 100%; height: 100%; background: #f1f5f9; }
-        
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .custom-tooltip {
-            background: rgba(255, 255, 255, 0.95); border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 0;
-        }
+        .custom-tooltip { background: rgba(255, 255, 255, 0.95); border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 0; }
         .leaflet-tooltip-left:before { border-left-color: rgba(255, 255, 255, 0.95); }
         .leaflet-tooltip-right:before { border-right-color: rgba(255, 255, 255, 0.95); }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        
-        .shimmer {
-            background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
+        .shimmer { background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-        /* Loader inicial visible */
-        #root:empty::before {
-            content: 'Iniciando sistema...';
-            display: flex;
-            height: 100vh;
-            width: 100%;
-            justify-content: center;
-            align-items: center;
-            color: #64748b;
-            font-family: sans-serif;
-            font-size: 1.2rem;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+        #root:empty::before { content: 'Iniciando sistema...'; display: flex; height: 100vh; width: 100%; justify-content: center; align-items: center; color: #64748b; font-family: sans-serif; font-size: 1.2rem; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
 <body class="text-slate-800 antialiased h-screen overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
-    
     <div id="root"></div>
 
-    <!-- Manejador de errores global para la carga de scripts -->
     <script>
         window.addEventListener('error', function(e) {
             const root = document.getElementById('root');
-            // Solo mostrar si el root está vacío (falló el inicio de React)
             if (root && root.innerHTML === '') {
                 console.error("Error global detectado:", e);
                 root.innerHTML = `<div style="display:flex; height:100vh; align-items:center; justify-content:center; text-align:center; padding:20px; color:#ef4444; font-family:sans-serif;">
@@ -127,26 +99,15 @@
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useMemo, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
-        // Recharts ahora funcionará gracias al importmap corregido
         import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
         import { 
             LayoutDashboard, Map as MapIcon, Database, Filter, Calendar, ChevronDown, Check, Search, Building2, Wallet, TrendingUp, Menu, X, ChevronRight, ChevronLeft, Wifi, WifiOff, ExternalLink, MoreHorizontal, ArrowUpRight, PieChart, Layers, Clock, ArrowRight, ArrowLeft, Activity
         } from 'lucide-react';
 
         // ==========================================
-        // CONFIGURACIÓN DE RED Y DATOS
+        // CONFIGURACIÓN DE RED Y DATOS (POWER AUTOMATE)
         // ==========================================
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRXB1xbDw893bsr9BQ3BhQ-URhstruzljQtf5TJ_E56HisCl68oF0w4oEDbwqaMdJJBaT0oJ7CcegXp/pub?gid=1773178254&single=true&output=csv";
-        
-        // Estrategia de Proxies en cascada para evitar el error 403/CORS
-        const PROXY_OPTIONS = [
-            // Opción 1: CodeTabs (Suele ser muy fiable)
-            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            // Opción 2: AllOrigins (Buena alternativa)
-            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            // Opción 3: CorsProxy (Fallback final)
-            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
-        ];
+        const POWER_AUTOMATE_URL = "https://default6780ef6e6e8c4ac2b2bc18eb02f617.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/46b6cb57149e41be940912e00255933e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=kerfdY9-3_R5Rki-x8dc-zzIu4yfvPm-bX0s0NU4ruQ"; 
 
         const COLORS = ['#4f46e5', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#14b8a6'];
         const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -171,181 +132,14 @@
         };
 
         // ==========================================
-        // COMPONENTES UI
+        // COMPONENTES UI (Ocultos para brevedad, idénticos a los tuyos)
         // ==========================================
-        const SkeletonCard = () => (
-            <div className="bg-white rounded-2xl p-6 shadow-soft border border-slate-100">
-                <div className="flex justify-between items-start">
-                    <div className="w-full">
-                        <div className="h-3 w-24 bg-slate-100 rounded mb-3 shimmer"></div>
-                        <div className="h-8 w-32 bg-slate-100 rounded mb-2 shimmer"></div>
-                        <div className="h-3 w-20 bg-slate-100 rounded shimmer"></div>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 shimmer"></div>
-                </div>
-            </div>
-        );
-
-        const SkeletonTable = () => (
-            <div className="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden">
-                <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-                    <div className="h-5 w-48 bg-slate-200 rounded shimmer"></div>
-                </div>
-                <div className="p-6 space-y-4">
-                    {[1,2,3,4,5].map(i => (
-                        <div key={i} className="flex gap-4">
-                            <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div>
-                            <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-
-        const KPICard = ({ title, value, subtext, icon: Icon, colorClass, bgClass, delay = 0 }) => (
-            <div className="bg-white rounded-2xl p-4 shadow-soft border border-slate-100 hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 group relative overflow-hidden animate-fade-in" style={{ animationDelay: `${delay}ms` }}>
-                <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500 ${bgClass.replace('bg-', 'bg-')}`}></div>
-                <div className="flex justify-between items-start relative z-10">
-                    <div>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-2">{title}</p>
-                        <h3 className="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-indigo-700 transition-colors">{value}</h3>
-                        {subtext && (<p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-medium">{subtext}</p>)}
-                    </div>
-                    <div className={`p-3 rounded-2xl ${bgClass} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner`}>
-                        <Icon size={20} className={colorClass} strokeWidth={2.5} />
-                    </div>
-                </div>
-            </div>
-        );
-
-        const MultiSelect = ({ options, selected, onChange, label, icon: Icon }) => {
-            const [isOpen, setIsOpen] = useState(false);
-            const containerRef = useRef(null);
-            useEffect(() => {
-                const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); };
-                document.addEventListener('mousedown', handleClickOutside);
-                return () => document.removeEventListener('mousedown', handleClickOutside);
-            }, []);
-            const isAllSelected = selected.length === options.length && options.length > 0;
-            const toggleOption = (opt) => selected.includes(opt) ? onChange(selected.filter(i => i !== opt)) : onChange([...selected, opt]);
-            const getSummary = () => {
-                if (selected.length === 0 || (isAllSelected && options.length > 0)) return `Todos`;
-                if (selected.length === 1) return selected[0];
-                return `${selected.length} seleccionados`;
-            };
-            return (
-                <div className="relative group" ref={containerRef}>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
-                    <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}>
-                        <div className="flex items-center gap-2.5 overflow-hidden">{Icon && <Icon size={16} className={`${isOpen ? 'text-indigo-400' : 'text-slate-400'} flex-shrink-0 transition-colors`} />}<span className="truncate font-medium">{getSummary()}</span></div>
-                        <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} />
-                    </button>
-                    {isOpen && (
-                        <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-900/10 max-h-64 overflow-y-auto custom-scrollbar animate-fade-in">
-                            <div className="sticky top-0 bg-slate-50/95 backdrop-blur-md border-b border-slate-100 p-2 cursor-pointer hover:bg-slate-100 transition-colors z-10" onClick={() => isAllSelected ? onChange([]) : onChange([...options])}>
-                                <div className="flex items-center gap-3 px-2 py-1"><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-200 ${isAllSelected ? 'bg-indigo-600 border-indigo-600 shadow-sm' : 'bg-white border-slate-300'}`}>{isAllSelected && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-indigo-900">Seleccionar Todo</span></div>
-                            </div>
-                            <div className="p-1.5">{options.map(opt => (<div key={opt} className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors" onClick={() => toggleOption(opt)}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-200 ${selected.includes(opt) ? 'bg-indigo-500 border-indigo-500 shadow-sm' : 'bg-white border-slate-300'}`}>{selected.includes(opt) && <Check size={10} className="text-white" strokeWidth={3} />}</div><span className={`text-sm ${selected.includes(opt) ? 'text-indigo-900 font-medium' : 'text-slate-600'}`}>{opt}</span></div>))}</div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const PeriodSelector = ({ data, selectedPeriods, onChange, label, yearKey = 'anio', monthKey = 'mes' }) => {
-            const [isOpen, setIsOpen] = useState(false);
-            const [expandedYears, setExpandedYears] = useState([]);
-            const containerRef = useRef(null);
-            const treeData = useMemo(() => {
-                const tree = {};
-                if (!data) return [];
-                data.forEach(item => {
-                    const y = item[yearKey]; const m = item[monthKey];
-                    if (!item || y === 'N/A' || m === 'N/A' || !y || !m) return;
-                    if (!tree[y]) tree[y] = new Set();
-                    tree[y].add(m);
-                });
-                return Object.keys(tree).sort((a, b) => b.localeCompare(a)).map(year => ({ year, months: Array.from(tree[year]).sort((a, b) => MONTH_NAMES.indexOf(a) - MONTH_NAMES.indexOf(b)) }));
-            }, [data, yearKey, monthKey]);
-            useEffect(() => {
-                const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); };
-                document.addEventListener('mousedown', handleClickOutside);
-                return () => document.removeEventListener('mousedown', handleClickOutside);
-            }, []);
-            const toggleYear = (e, year) => { e.stopPropagation(); setExpandedYears(prev => prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]); };
-            const isYearFull = (y, ms) => selectedPeriods[y] && ms.every(m => selectedPeriods[y].includes(m));
-            const isYearPartial = (y, ms) => selectedPeriods[y] && selectedPeriods[y].length > 0 && selectedPeriods[y].length < ms.length;
-            const isAll = treeData.length > 0 && treeData.every(t => isYearFull(t.year, t.months));
-            const handleSelectAll = () => { if (isAll) onChange({}); else { const all = {}; treeData.forEach(t => all[t.year] = [...t.months]); onChange(all); } };
-            const handleYearClick = (y, ms) => { const next = { ...selectedPeriods }; if (isYearFull(y, ms)) delete next[y]; else next[y] = [...ms]; onChange(next); };
-            const handleMonthClick = (y, m) => { const next = { ...selectedPeriods }; const current = next[y] || []; if (current.includes(m)) { next[y] = current.filter(cm => cm !== m); if (next[y].length === 0) delete next[y]; } else { next[y] = [...current, m]; } onChange(next); };
-            const getSummary = () => { const years = Object.keys(selectedPeriods); if (years.length === 0 || isAll) return 'Histórico Completo'; if (years.length === 1) return `${years[0]} (${selectedPeriods[years[0]].length} meses)`; return `${years.length} años seleccionados`; };
-
-            return (
-                <div className="relative group" ref={containerRef}>
-                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
-                     <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}>
-                        <div className="flex items-center gap-2.5 truncate"><Calendar size={16} className={`${isOpen ? 'text-indigo-400' : 'text-slate-400'} flex-shrink-0 transition-colors`} /><span className="truncate font-medium">{getSummary()}</span></div>
-                        <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} />
-                    </button>
-                    {isOpen && (
-                        <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-900/10 max-h-80 overflow-y-auto custom-scrollbar p-2 animate-fade-in">
-                             <div className="mb-2 px-2 py-2 bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2 hover:bg-slate-100 transition-colors" onClick={handleSelectAll}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAll ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>{isAll && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-slate-700">Seleccionar Todo</span></div>
-                            {treeData.map(({ year, months }) => {
-                                const expanded = expandedYears.includes(year); const full = isYearFull(year, months); const partial = isYearPartial(year, months);
-                                return (
-                                    <div key={year} className="mb-1">
-                                        <div className="flex items-center px-2 py-1.5 hover:bg-slate-50 rounded-lg transition-colors group/year">
-                                            <div className={`w-4 h-4 mr-3 rounded border flex items-center justify-center cursor-pointer transition-all ${full ? 'bg-indigo-600 border-indigo-600' : partial ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-300 group-hover/year:border-indigo-300'}`} onClick={() => handleYearClick(year, months)}>{full && <Check size={12} className="text-white" strokeWidth={3} />}{partial && <div className="w-2 h-2 bg-indigo-600 rounded-full" />}</div>
-                                            <span className="flex-grow text-sm font-medium text-slate-700 cursor-pointer" onClick={(e) => toggleYear(e, year)}>{year}</span>
-                                            <div onClick={(e) => toggleYear(e, year)} className="p-1 hover:bg-slate-200 rounded cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors">{expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</div>
-                                        </div>
-                                        {expanded && (<div className="ml-6 pl-3 border-l-2 border-indigo-100 mt-1 space-y-1">{months.map(m => { const isSel = selectedPeriods[year]?.includes(m); return (<div key={`${year}-${m}`} className="flex items-center px-2 py-1.5 cursor-pointer hover:bg-indigo-50 rounded-md transition-colors" onClick={() => handleMonthClick(year, m)}><div className={`w-3.5 h-3.5 mr-2 rounded border flex items-center justify-center transition-all ${isSel ? 'bg-indigo-500 border-indigo-500' : 'bg-white border-slate-300'}`}>{isSel && <Check size={10} className="text-white" strokeWidth={3} />}</div><span className="text-xs text-slate-600">{m}</span></div>) })}</div>)}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const MapComponent = ({ data, sectors, selectedSectors, onSectorClick, onProjectClick, currentSearch }) => {
-            const mapRef = useRef(null); const mapInst = useRef(null); const [isZoomActive, setIsZoomActive] = useState(false); 
-            const stats = useMemo(() => { const totalInv = data.reduce((acc, curr) => acc + curr.inversion, 0); const sectorStats = data.reduce((acc, curr) => { acc[curr.sector] = (acc[curr.sector] || 0) + curr.inversion; return acc; }, {}); return Object.entries(sectorStats).map(([name, value]) => ({ name, value, colorIndex: sectors.indexOf(name) })).sort((a, b) => b.value - a.value); }, [data, sectors]);
-            useEffect(() => {
-                if (!mapRef.current || !window.L) return;
-                if (!mapInst.current) {
-                    mapInst.current = window.L.map(mapRef.current, { zoomControl: false, scrollWheelZoom: false }).setView([-35.4264, -71.6554], 7);
-                    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 20 }).addTo(mapInst.current);
-                    window.L.control.zoom({ position: 'bottomright' }).addTo(mapInst.current);
-                    mapInst.current.on('dblclick', () => { if (mapInst.current) { mapInst.current.scrollWheelZoom.enable(); setIsZoomActive(true); } });
-                    mapInst.current.on('mouseout', () => { if (mapInst.current) { mapInst.current.scrollWheelZoom.disable(); setIsZoomActive(false); } });
-                }
-                mapInst.current.eachLayer(l => { if (l instanceof window.L.CircleMarker) mapInst.current.removeLayer(l); });
-                data.forEach(p => {
-                    if (!p.lat || !p.lng) return;
-                    const idx = sectors.indexOf(p.sector) % COLORS.length; const color = COLORS[idx] || '#94a3b8'; const r = Math.max(6, Math.log((p.inversion || 0) + 1) * 3.5); const isSelected = currentSearch === p.nombre;
-                    const marker = window.L.circleMarker([p.lat, p.lng], { radius: isSelected ? r + 4 : r, fillColor: color, color: isSelected ? '#4f46e5' : '#fff', weight: isSelected ? 4 : 2, opacity: 1, fillOpacity: isSelected ? 1 : 0.85 }).addTo(mapInst.current);
-                    marker.on('click', () => { onProjectClick(p.nombre); });
-                    marker.bindTooltip(` <div class="font-sans p-3 min-w-[200px]"> <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${p.sector}</div> <div class="font-bold text-slate-800 text-base leading-tight mb-2">${p.nombre}</div> <div class="border-t border-slate-100 pt-2 mt-1 space-y-1.5"> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Inversión</span> <span class="text-sm font-mono text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">$${new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(p.inversion)} MM</span> </div> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Estado</span> <span class="text-xs font-semibold px-2 py-0.5 rounded border ${p.estado === 'Aprobado' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200'}">${p.estado}</span> </div> </div> <div class="text-[10px] text-indigo-500 mt-2 text-right italic">Click para filtrar</div> </div> `, { className: 'custom-tooltip shadow-xl', direction: 'top', offset: [0, -10] });
-                    marker.on('mouseover', function (e) { this.setStyle({ fillOpacity: 1, weight: isSelected ? 4 : 3 }); }); marker.on('mouseout', function (e) { this.setStyle({ fillOpacity: isSelected ? 1 : 0.85, weight: isSelected ? 4 : 2 }); });
-                });
-            }, [data, sectors, currentSearch]); 
-            return (
-                <div className="flex flex-col w-full">
-                    <div className={`h-[400px] relative rounded-xl overflow-hidden z-0 border transition-colors duration-300 w-full ${isZoomActive ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-slate-100'}`}>
-                        <div ref={mapRef} className="w-full h-full outline-none" />
-                        <div className={`absolute top-4 left-4 z-[400] transition-all duration-500 ${isZoomActive ? 'opacity-0 translate-y-[-10px] pointer-events-none' : 'opacity-100 translate-y-0'}`}><div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9l6 6-6 6"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg> Doble click para zoom</div></div>
-                        {currentSearch && (<div className="absolute top-4 right-4 z-[500] bg-white px-3 py-1.5 rounded-lg shadow-md border border-slate-200 text-xs font-medium text-slate-600 flex items-center gap-2 cursor-pointer hover:bg-slate-50" onClick={() => onProjectClick(currentSearch)}><span>Filtrado por proyecto</span><X size={14} className="text-slate-400 hover:text-red-500" /></div>)}
-                    </div>
-                    <div className="mt-4 px-1 w-full"><div className="flex items-center justify-between mb-3"><h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1"><Layers size={12} /> Sectores Interactivos ({stats.length})</h4>{selectedSectors.length > 0 && (<span className="text-[10px] text-indigo-500 cursor-pointer hover:underline" onClick={() => onSectorClick('CLEAR_ALL')}>Limpiar filtros</span>)}</div><div className="flex flex-wrap gap-2 w-full">{stats.length > 0 ? stats.map((stat) => { const isActive = selectedSectors.includes(stat.name); return (<div key={stat.name} onClick={() => onSectorClick(stat.name)} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer border ${isActive ? 'bg-indigo-50 border-indigo-200 shadow-sm ring-1 ring-indigo-100' : 'bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200'}`}><span className={`w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 border border-white ring-1 ${isActive ? 'ring-indigo-300' : 'ring-black/5'}`} style={{ backgroundColor: COLORS[stat.colorIndex % COLORS.length] }} /><span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-600'}`}>{stat.name}</span>{isActive && <Check size={10} className="text-indigo-500 ml-1" />}</div>); }) : <div className="text-xs text-slate-400 w-full italic">Sin datos visibles</div>}</div></div>
-                </div>
-            );
-        };
+        const SkeletonCard = () => ( <div className="bg-white rounded-2xl p-6 shadow-soft border border-slate-100"> <div className="flex justify-between items-start"> <div className="w-full"> <div className="h-3 w-24 bg-slate-100 rounded mb-3 shimmer"></div> <div className="h-8 w-32 bg-slate-100 rounded mb-2 shimmer"></div> <div className="h-3 w-20 bg-slate-100 rounded shimmer"></div> </div> <div className="w-12 h-12 rounded-xl bg-slate-100 shimmer"></div> </div> </div> );
+        const SkeletonTable = () => ( <div className="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden"> <div className="p-5 border-b border-slate-100 bg-slate-50/50"> <div className="h-5 w-48 bg-slate-200 rounded shimmer"></div> </div> <div className="p-6 space-y-4"> {[1,2,3,4,5].map(i => ( <div key={i} className="flex gap-4"> <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div> <div className="h-4 w-1/4 bg-slate-100 rounded shimmer"></div> <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div> <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div> <div className="h-4 w-1/6 bg-slate-100 rounded shimmer"></div> </div> ))} </div> </div> );
+        const KPICard = ({ title, value, subtext, icon: Icon, colorClass, bgClass, delay = 0 }) => ( <div className="bg-white rounded-2xl p-4 shadow-soft border border-slate-100 hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 group relative overflow-hidden animate-fade-in" style={{ animationDelay: `${delay}ms` }}> <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500 ${bgClass.replace('bg-', 'bg-')}`}></div> <div className="flex justify-between items-start relative z-10"> <div> <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-2">{title}</p> <h3 className="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-indigo-700 transition-colors">{value}</h3> {subtext && (<p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-medium">{subtext}</p>)} </div> <div className={`p-3 rounded-2xl ${bgClass} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner`}> <Icon size={20} className={colorClass} strokeWidth={2.5} /> </div> </div> </div> );
+        const MultiSelect = ({ options, selected, onChange, label, icon: Icon }) => { const [isOpen, setIsOpen] = useState(false); const containerRef = useRef(null); useEffect(() => { const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); }; document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside); }, []); const isAllSelected = selected.length === options.length && options.length > 0; const toggleOption = (opt) => selected.includes(opt) ? onChange(selected.filter(i => i !== opt)) : onChange([...selected, opt]); const getSummary = () => { if (selected.length === 0 || (isAllSelected && options.length > 0)) return `Todos`; if (selected.length === 1) return selected[0]; return `${selected.length} seleccionados`; }; return ( <div className="relative group" ref={containerRef}> <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label> <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}> <div className="flex items-center gap-2.5 overflow-hidden">{Icon && <Icon size={16} className={`${isOpen ? 'text-indigo-400' : 'text-slate-400'} flex-shrink-0 transition-colors`} />}<span className="truncate font-medium">{getSummary()}</span></div> <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} /> </button> {isOpen && ( <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-900/10 max-h-64 overflow-y-auto custom-scrollbar animate-fade-in"> <div className="sticky top-0 bg-slate-50/95 backdrop-blur-md border-b border-slate-100 p-2 cursor-pointer hover:bg-slate-100 transition-colors z-10" onClick={() => isAllSelected ? onChange([]) : onChange([...options])}> <div className="flex items-center gap-3 px-2 py-1"><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-200 ${isAllSelected ? 'bg-indigo-600 border-indigo-600 shadow-sm' : 'bg-white border-slate-300'}`}>{isAllSelected && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-indigo-900">Seleccionar Todo</span></div> </div> <div className="p-1.5">{options.map(opt => (<div key={opt} className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors" onClick={() => toggleOption(opt)}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-200 ${selected.includes(opt) ? 'bg-indigo-500 border-indigo-500 shadow-sm' : 'bg-white border-slate-300'}`}>{selected.includes(opt) && <Check size={10} className="text-white" strokeWidth={3} />}</div><span className={`text-sm ${selected.includes(opt) ? 'text-indigo-900 font-medium' : 'text-slate-600'}`}>{opt}</span></div>))}</div> </div> )} </div> ); };
+        const PeriodSelector = ({ data, selectedPeriods, onChange, label, yearKey = 'anio', monthKey = 'mes' }) => { const [isOpen, setIsOpen] = useState(false); const [expandedYears, setExpandedYears] = useState([]); const containerRef = useRef(null); const treeData = useMemo(() => { const tree = {}; if (!data) return []; data.forEach(item => { const y = item[yearKey]; const m = item[monthKey]; if (!item || y === 'N/A' || m === 'N/A' || !y || !m) return; if (!tree[y]) tree[y] = new Set(); tree[y].add(m); }); return Object.keys(tree).sort((a, b) => b.localeCompare(a)).map(year => ({ year, months: Array.from(tree[year]).sort((a, b) => MONTH_NAMES.indexOf(a) - MONTH_NAMES.indexOf(b)) })); }, [data, yearKey, monthKey]); useEffect(() => { const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); }; document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside); }, []); const toggleYear = (e, year) => { e.stopPropagation(); setExpandedYears(prev => prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]); }; const isYearFull = (y, ms) => selectedPeriods[y] && ms.every(m => selectedPeriods[y].includes(m)); const isYearPartial = (y, ms) => selectedPeriods[y] && selectedPeriods[y].length > 0 && selectedPeriods[y].length < ms.length; const isAll = treeData.length > 0 && treeData.every(t => isYearFull(t.year, t.months)); const handleSelectAll = () => { if (isAll) onChange({}); else { const all = {}; treeData.forEach(t => all[t.year] = [...t.months]); onChange(all); } }; const handleYearClick = (y, ms) => { const next = { ...selectedPeriods }; if (isYearFull(y, ms)) delete next[y]; else next[y] = [...ms]; onChange(next); }; const handleMonthClick = (y, m) => { const next = { ...selectedPeriods }; const current = next[y] || []; if (current.includes(m)) { next[y] = current.filter(cm => cm !== m); if (next[y].length === 0) delete next[y]; } else { next[y] = [...current, m]; } onChange(next); }; const getSummary = () => { const years = Object.keys(selectedPeriods); if (years.length === 0 || isAll) return 'Histórico Completo'; if (years.length === 1) return `${years[0]} (${selectedPeriods[years[0]].length} meses)`; return `${years.length} años seleccionados`; }; return ( <div className="relative group" ref={containerRef}> <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{label}</label> <button onClick={() => setIsOpen(!isOpen)} className={`w-full bg-slate-800/50 border ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-700 group-hover:border-slate-600'} rounded-xl py-3 px-4 text-sm flex justify-between items-center transition-all text-slate-200 backdrop-blur-sm`}> <div className="flex items-center gap-2.5 truncate"><Calendar size={16} className={`${isOpen ? 'text-indigo-400' : 'text-slate-400'} flex-shrink-0 transition-colors`} /><span className="truncate font-medium">{getSummary()}</span></div> <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} /> </button> {isOpen && ( <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-900/10 max-h-80 overflow-y-auto custom-scrollbar p-2 animate-fade-in"> <div className="mb-2 px-2 py-2 bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2 hover:bg-slate-100 transition-colors" onClick={handleSelectAll}><div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAll ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>{isAll && <Check size={12} className="text-white" strokeWidth={3} />}</div><span className="text-sm font-bold text-slate-700">Seleccionar Todo</span></div> {treeData.map(({ year, months }) => { const expanded = expandedYears.includes(year); const full = isYearFull(year, months); const partial = isYearPartial(year, months); return ( <div key={year} className="mb-1"> <div className="flex items-center px-2 py-1.5 hover:bg-slate-50 rounded-lg transition-colors group/year"> <div className={`w-4 h-4 mr-3 rounded border flex items-center justify-center cursor-pointer transition-all ${full ? 'bg-indigo-600 border-indigo-600' : partial ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-300 group-hover/year:border-indigo-300'}`} onClick={() => handleYearClick(year, months)}>{full && <Check size={12} className="text-white" strokeWidth={3} />}{partial && <div className="w-2 h-2 bg-indigo-600 rounded-full" />}</div> <span className="flex-grow text-sm font-medium text-slate-700 cursor-pointer" onClick={(e) => toggleYear(e, year)}>{year}</span> <div onClick={(e) => toggleYear(e, year)} className="p-1 hover:bg-slate-200 rounded cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors">{expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</div> </div> {expanded && (<div className="ml-6 pl-3 border-l-2 border-indigo-100 mt-1 space-y-1">{months.map(m => { const isSel = selectedPeriods[year]?.includes(m); return (<div key={`${year}-${m}`} className="flex items-center px-2 py-1.5 cursor-pointer hover:bg-indigo-50 rounded-md transition-colors" onClick={() => handleMonthClick(year, m)}><div className={`w-3.5 h-3.5 mr-2 rounded border flex items-center justify-center transition-all ${isSel ? 'bg-indigo-500 border-indigo-500' : 'bg-white border-slate-300'}`}>{isSel && <Check size={10} className="text-white" strokeWidth={3} />}</div><span className="text-xs text-slate-600">{m}</span></div>) })}</div>)} </div> ) })} </div> )} </div> ); };
+        const MapComponent = ({ data, sectors, selectedSectors, onSectorClick, onProjectClick, currentSearch }) => { const mapRef = useRef(null); const mapInst = useRef(null); const [isZoomActive, setIsZoomActive] = useState(false); const stats = useMemo(() => { const totalInv = data.reduce((acc, curr) => acc + curr.inversion, 0); const sectorStats = data.reduce((acc, curr) => { acc[curr.sector] = (acc[curr.sector] || 0) + curr.inversion; return acc; }, {}); return Object.entries(sectorStats).map(([name, value]) => ({ name, value, colorIndex: sectors.indexOf(name) })).sort((a, b) => b.value - a.value); }, [data, sectors]); useEffect(() => { if (!mapRef.current || !window.L) return; if (!mapInst.current) { mapInst.current = window.L.map(mapRef.current, { zoomControl: false, scrollWheelZoom: false }).setView([-35.4264, -71.6554], 7); window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 20 }).addTo(mapInst.current); window.L.control.zoom({ position: 'bottomright' }).addTo(mapInst.current); mapInst.current.on('dblclick', () => { if (mapInst.current) { mapInst.current.scrollWheelZoom.enable(); setIsZoomActive(true); } }); mapInst.current.on('mouseout', () => { if (mapInst.current) { mapInst.current.scrollWheelZoom.disable(); setIsZoomActive(false); } }); } mapInst.current.eachLayer(l => { if (l instanceof window.L.CircleMarker) mapInst.current.removeLayer(l); }); data.forEach(p => { if (!p.lat || !p.lng) return; const idx = sectors.indexOf(p.sector) % COLORS.length; const color = COLORS[idx] || '#94a3b8'; const r = Math.max(6, Math.log((p.inversion || 0) + 1) * 3.5); const isSelected = currentSearch === p.nombre; const marker = window.L.circleMarker([p.lat, p.lng], { radius: isSelected ? r + 4 : r, fillColor: color, color: isSelected ? '#4f46e5' : '#fff', weight: isSelected ? 4 : 2, opacity: 1, fillOpacity: isSelected ? 1 : 0.85 }).addTo(mapInst.current); marker.on('click', () => { onProjectClick(p.nombre); }); marker.bindTooltip(` <div class="font-sans p-3 min-w-[200px]"> <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${p.sector}</div> <div class="font-bold text-slate-800 text-base leading-tight mb-2">${p.nombre}</div> <div class="border-t border-slate-100 pt-2 mt-1 space-y-1.5"> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Inversión</span> <span class="text-sm font-mono text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">$${new Intl.NumberFormat('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(p.inversion)} MM</span> </div> <div class="flex justify-between items-center"> <span class="text-xs text-slate-500">Estado</span> <span class="text-xs font-semibold px-2 py-0.5 rounded border ${p.estado === 'Aprobado' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200'}">${p.estado}</span> </div> </div> <div class="text-[10px] text-indigo-500 mt-2 text-right italic">Click para filtrar</div> </div> `, { className: 'custom-tooltip shadow-xl', direction: 'top', offset: [0, -10] }); marker.on('mouseover', function (e) { this.setStyle({ fillOpacity: 1, weight: isSelected ? 4 : 3 }); }); marker.on('mouseout', function (e) { this.setStyle({ fillOpacity: isSelected ? 1 : 0.85, weight: isSelected ? 4 : 2 }); }); }); }, [data, sectors, currentSearch]); return ( <div className="flex flex-col w-full"> <div className={`h-[400px] relative rounded-xl overflow-hidden z-0 border transition-colors duration-300 w-full ${isZoomActive ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-slate-100'}`}> <div ref={mapRef} className="w-full h-full outline-none" /> <div className={`absolute top-4 left-4 z-[400] transition-all duration-500 ${isZoomActive ? 'opacity-0 translate-y-[-10px] pointer-events-none' : 'opacity-100 translate-y-0'}`}><div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9l6 6-6 6"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg> Doble click para zoom</div></div> {currentSearch && (<div className="absolute top-4 right-4 z-[500] bg-white px-3 py-1.5 rounded-lg shadow-md border border-slate-200 text-xs font-medium text-slate-600 flex items-center gap-2 cursor-pointer hover:bg-slate-50" onClick={() => onProjectClick(currentSearch)}><span>Filtrado por proyecto</span><X size={14} className="text-slate-400 hover:text-red-500" /></div>)} </div> <div className="mt-4 px-1 w-full"><div className="flex items-center justify-between mb-3"><h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1"><Layers size={12} /> Sectores Interactivos ({stats.length})</h4>{selectedSectors.length > 0 && (<span className="text-[10px] text-indigo-500 cursor-pointer hover:underline" onClick={() => onSectorClick('CLEAR_ALL')}>Limpiar filtros</span>)}</div><div className="flex flex-wrap gap-2 w-full">{stats.length > 0 ? stats.map((stat) => { const isActive = selectedSectors.includes(stat.name); return (<div key={stat.name} onClick={() => onSectorClick(stat.name)} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer border ${isActive ? 'bg-indigo-50 border-indigo-200 shadow-sm ring-1 ring-indigo-100' : 'bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200'}`}><span className={`w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 border border-white ring-1 ${isActive ? 'ring-indigo-300' : 'ring-black/5'}`} style={{ backgroundColor: COLORS[stat.colorIndex % COLORS.length] }} /><span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-600'}`}>{stat.name}</span>{isActive && <Check size={10} className="text-indigo-500 ml-1" />}</div>); }) : <div className="text-xs text-slate-400 w-full italic">Sin datos visibles</div>}</div></div> </div> ); };
 
         // --- COMPONENTE: PORTADA ---
         const LandingPage = ({ onEnter }) => {
@@ -394,14 +188,12 @@
         // D. DASHBOARD
         // ==========================================
         const Dashboard = ({ onBack }) => {
-            // -- Estados Globales --
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
             const [isLive, setIsLive] = useState(false); 
             const [sidebarOpen, setSidebarOpen] = useState(false);
             
-            // -- Estados de Filtros --
             const [selectedSectors, setSelectedSectors] = useState([]);
             const [selectedEstados, setSelectedEstados] = useState([]);
             const [selectedTipos, setSelectedTipos] = useState([]);
@@ -413,20 +205,15 @@
             const itemsPerPage = 8; 
 
             // ===================================================================================
-            // PARSE DATA DEFINITIVO (FECHAS + INVERSIÓN INTELIGENTE)
+            // PROCESAR JSON DE POWER AUTOMATE
             // ===================================================================================
-            const parseData = (csv) => {
-                const lines = csv.split(/\r\n|\n/).map(l => l.trim()).filter(l => l);
-                if (lines.length < 2) return [];
-                
-                const parseLine = (text) => { const res = []; let cur = '', inQ = false; for (let char of text) { if (char === '"') { inQ = !inQ; } else if (char === ',' && !inQ) { res.push(cur.trim()); cur = ''; } else cur += char; } res.push(cur.trim()); return res; };
-                const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+            const processJsonData = (jsonArray) => {
+                if (!Array.isArray(jsonArray)) return [];
 
-                // 1. HELPER FECHAS
                 const parseDateString = (dateStr) => {
                     if (!dateStr) return null;
                     if (/^\d+$/.test(dateStr)) return new Date((parseInt(dateStr) - 25569) * 86400000);
-                    let s = dateStr.trim().replace(/^"|"$/g, '');
+                    let s = dateStr.toString().trim().replace(/^"|"$/g, '');
                     Object.entries(SHORT_MONTHS).forEach(([k, v]) => { if (s.toLowerCase().includes(k)) s = s.toLowerCase().replace(k, (v + 1).toString()); });
                     const datePartOnly = s.split(/[ T]/)[0];
                     const p = datePartOnly.split(/[\/\-\.]/);
@@ -439,7 +226,6 @@
                     return isNaN(d.getTime()) ? null : d;
                 };
 
-                // 2. HELPER NÚMEROS (ROBUSTO)
                 const parseChileanNumber = (str) => {
                     if (!str) return 0;
                     let clean = str.toString().replace(/[^0-9,.-]/g, '');
@@ -452,21 +238,34 @@
                     return isNaN(num) ? 0 : num;
                 };
 
-                return lines.slice(1).map(line => {
-                    const row = parseLine(line); const obj = {}; headers.forEach((h, i) => obj[h] = row[i]?.replace(/^"|"$/g, '') || '');
+                return jsonArray.map(item => {
+                    // Busca variaciones comunes de nombres en Excel
+                    // Si tu Excel tiene espacios (ej. "Nombre Proyecto"), JS lo lee tal cual
+                    const encontrarLlave = (opciones) => {
+                        const keys = Object.keys(item);
+                        for (let opcion of opciones) {
+                            const match = keys.find(k => k.toLowerCase() === opcion.toLowerCase() || k.toLowerCase().includes(opcion.toLowerCase()));
+                            if (match && item[match] !== null) return item[match];
+                        }
+                        return null;
+                    };
+
+                    const nombre = encontrarLlave(['Nombre', 'Proyecto']) || 'Sin Nombre'; 
+                    if (nombre === 'Sin Nombre') return null;
                     
-                    const find = (keys) => { for (let k of keys) { if (obj[k]) return obj[k]; const fuzzy = Object.keys(obj).find(ok => ok.toLowerCase().includes(k.toLowerCase())); if (fuzzy) return obj[fuzzy]; } return ''; };
+                    const sector = encontrarLlave(['Sector', 'Productivo']) || 'Otros'; 
+                    const estado = encontrarLlave(['Estado', 'SEIA']) || 'N/A'; 
+                    const tipo = encontrarLlave(['Tipo', 'Tipologia', 'Tipología']) || 'N/A'; 
+                    const titular = encontrarLlave(['Titular', 'Empresa']) || ''; 
+                    const fechaStr = encontrarLlave(['Fecha', 'Presentacion', 'Presentación']) || ''; 
+                    const fechaCalStr = encontrarLlave(['FechaCalificacion', 'Calificacion', 'Fecha calificación']) || ''; 
+                    const link = encontrarLlave(['Link', 'Enlace', 'URL']) || ''; 
                     
-                    const nombre = find(['Nombre', 'Proyecto']) || 'Sin Nombre'; if (nombre === 'Sin Nombre') return null;
-                    const sector = find(['Sector', 'Productivo']) || 'Otros'; const estado = find(['Estado', 'SEIA']) || 'N/A'; const tipo = find(['Tipo', 'Tipología']) || 'N/A'; const titular = find(['Titular', 'Empresa']); 
-                    const fechaStr = find(['Fecha', 'Presentación']); 
-                    const fechaCalStr = find(['Fecha calificación', 'Calificación']); 
-                    const link = find(['Link', 'Enlace', 'URL']); 
-                    
-                    const invStr = find(['Inversión', 'MMU$']) || '0';
+                    const invStr = encontrarLlave(['Inversion', 'Inversión', 'MMUS', 'Monto']) || '0';
                     const inv = parseChileanNumber(invStr);
 
-                    let anio = 'N/A', mes = 'N/A', timestamp = 0; let fechaObj = parseDateString(fechaStr);
+                    let anio = 'N/A', mes = 'N/A', timestamp = 0; 
+                    let fechaObj = parseDateString(fechaStr);
                     if (fechaObj && !isNaN(fechaObj.getTime()) && fechaObj.getFullYear() > 1900) {
                         anio = fechaObj.getFullYear().toString(); mes = MONTH_NAMES[fechaObj.getMonth()]; timestamp = fechaObj.getTime();
                     }
@@ -476,8 +275,17 @@
                         anioCal = fechaCalObj.getFullYear().toString(); mesCal = MONTH_NAMES[fechaCalObj.getMonth()];
                     }
 
-                    let latStr = find(['Latitud', 'lat']); let lngStr = find(['Longitud', 'lng']); let lat = parseFloat(latStr ? latStr.replace(',', '.') : '0'); let lng = parseFloat(lngStr ? lngStr.replace(',', '.') : '0');
-                    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) { const loc = find(['Localización', 'Comuna']).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); for (let [k, v] of Object.entries(MAULE_COORDS)) { if (loc.includes(k)) { lat = v.lat + (Math.random()-0.5)*0.05; lng = v.lng + (Math.random()-0.5)*0.05; break; } } }
+                    let latStr = encontrarLlave(['Latitud', 'lat']); 
+                    let lngStr = encontrarLlave(['Longitud', 'lng']); 
+                    let lat = parseFloat(latStr ? latStr.toString().replace(',', '.') : '0'); 
+                    let lng = parseFloat(lngStr ? lngStr.toString().replace(',', '.') : '0');
+                    
+                    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) { 
+                        const loc = (encontrarLlave(['Localizacion', 'Localización', 'Comuna']) || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
+                        for (let [k, v] of Object.entries(MAULE_COORDS)) { 
+                            if (loc.includes(k)) { lat = v.lat + (Math.random()-0.5)*0.05; lng = v.lng + (Math.random()-0.5)*0.05; break; } 
+                        } 
+                    }
                     
                     let approvalMonths = null; 
                     if (fechaObj && fechaCalObj) { 
@@ -497,55 +305,70 @@
             };
 
             // ===================================================================================
-            // FUNCIÓN DE FETCH CON REINTENTOS MÚLTIPLES (FIX PARA CORS)
+            // FUNCIÓN DE FETCH HACIA POWER AUTOMATE
             // ===================================================================================
             useEffect(() => {
                 const fetchData = async () => {
                     setLoading(true); setError(null);
-                    let fetchedText = null;
 
-                    // Intentar cada proxy en orden
-                    for (const getProxyUrl of PROXY_OPTIONS) {
-                        try {
-                            const proxyUrl = getProxyUrl(SHEET_CSV_URL);
-                            console.log("Intentando conectar con:", proxyUrl);
-                            
-                            const response = await fetch(proxyUrl);
-                            if (response.ok) {
-                                const text = await response.text();
-                                // Verificar que no sea un error HTML disfrazado de éxito
-                                if (text && text.length > 50 && !text.includes('404 Not Found') && !text.includes('AccessDenied')) {
-                                    fetchedText = text;
-                                    break; // Éxito! Salir del bucle
-                                }
-                            }
-                        } catch (e) {
-                            console.warn("Fallo proxy:", e.message);
-                            // Continuar al siguiente proxy
-                        }
-                    }
+                    try {
+                        const response = await fetch(POWER_AUTOMATE_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({})
+                        });
 
-                    if (fetchedText) {
+                        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+                        const textData = await response.text();
+                        
+                        let jsonData;
                         try {
-                            const parsed = parseData(fetchedText);
-                            if (parsed.length === 0) throw new Error('CSV válido pero sin filas reconocibles');
-                            setData(parsed); 
-                            setIsLive(true); 
-                            setLoading(false);
-                            return;
+                            jsonData = JSON.parse(textData);
+                            console.log("🔍 Datos recibidos de Power Automate:", jsonData);
                         } catch (parseError) {
-                             console.error("Error parsing data:", parseError);
-                             setError("Error al procesar datos CSV");
+                            console.error("El texto recibido no es JSON:", textData.substring(0, 100) + "...");
+                            throw new Error("Power Automate no está devolviendo un formato JSON válido.");
                         }
-                    }
+                        
+                        // Extracción inteligente de la tabla de Excel
+                        let jsonArray = [];
+                        if (Array.isArray(jsonData)) {
+                            jsonArray = jsonData;
+                        } else if (jsonData && Array.isArray(jsonData.value)) {
+                            jsonArray = jsonData.value;
+                        } else if (jsonData && jsonData.body && Array.isArray(jsonData.body)) {
+                            jsonArray = jsonData.body;
+                        } else if (typeof jsonData === 'object') {
+                            const possibleArray = Object.values(jsonData).find(val => Array.isArray(val));
+                            if (possibleArray) jsonArray = possibleArray;
+                        }
 
-                    // Si llegamos aquí, fallaron todos los intentos
-                    console.error("Fallaron todos los proxies.");
-                    const mockCSV = `Nombre,Titular,Sector,Estado,Inversión,Fecha,Latitud,Longitud\n"Error Conexión (CORS)","Demo","Energía","En Calificación","120","15/03/2023",-35.4264,-71.6554`;
-                    setData(parseData(mockCSV)); 
-                    setIsLive(false); 
-                    setError(`No se pudo conectar con Google Sheets desde GitHub Pages.`); 
-                    setLoading(false);
+                        if (jsonArray.length === 0) {
+                            console.warn("⚠️ No se encontró una lista válida. ¿La tabla de Excel tiene datos?");
+                            throw new Error('El JSON devuelto está vacío o no contiene formato de tabla.');
+                        }
+
+                        const processed = processJsonData(jsonArray);
+                        
+                        if (processed.length === 0) {
+                             console.warn("⚠️ Los datos llegaron, pero ninguna columna se llama 'Nombre' o 'Proyecto'. Revisa los nombres en Excel.");
+                        }
+
+                        setData(processed); 
+                        setIsLive(true); 
+
+                    } catch (e) {
+                        console.error("Error procesando:", e);
+                        setData([]); 
+                        setIsLive(true); // Conectó, pero hubo error mapeando
+                        setError(e.message); 
+                    } finally {
+                        setLoading(false);
+                    }
                 };
                 fetchData();
             }, []);
@@ -633,12 +456,12 @@
                             </div>
                             <div className="flex items-center gap-4 w-full md:w-auto">
                                 <div className="flex-1 md:w-80 flex items-center bg-slate-100/80 rounded-xl px-4 py-2.5 border border-transparent focus-within:border-indigo-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100/50 transition-all duration-300 group"><Search size={18} className="text-slate-400 mr-3 group-focus-within:text-indigo-500 transition-colors" /><input type="text" placeholder="Buscar proyecto..." className="bg-transparent border-none outline-none text-sm w-full text-slate-700 placeholder-slate-400" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
-                                <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200"><div className={`flex flex-col items-end ${isLive ? 'text-emerald-600' : 'text-red-600'}`}><span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">{isLive ? <Wifi size={10} /> : <WifiOff size={10} />}{isLive ? 'Conectado' : error ? 'Error' : 'Demo'}</span></div></div>
+                                <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200"><div className={`flex flex-col items-end ${isLive ? 'text-emerald-600' : 'text-red-600'}`}><span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">{isLive ? <Wifi size={10} /> : <WifiOff size={10} />}{isLive ? 'Conectado' : error ? 'Error API' : 'Demo'}</span></div></div>
                             </div>
                         </header>
 
                         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 custom-scrollbar scroll-smooth">
-                            {error && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in"><WifiOff size={20} /><div><p className="font-bold text-sm">Error de Conexión</p><p className="text-xs">{error} - Mostrando datos de ejemplo.</p></div></div>)}
+                            {error && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in"><WifiOff size={20} /><div><p className="font-bold text-sm">Aviso al leer datos</p><p className="text-xs">{error}</p></div></div>)}
                             {loading ? (
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
